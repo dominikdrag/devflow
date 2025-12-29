@@ -88,9 +88,11 @@ The optional `security-auditor` agent performs deep analysis including:
 
 To request a security audit, ask during the Quality Review phase.
 
-## Credits
+## Acknowledgements
 
-Based on Anthropic's official feature-dev plugin, enhanced with:
+This plugin is based on [Anthropic's official feature-dev plugin](https://github.com/anthropics/claude-code/tree/main/plugins/feature-dev).
+
+**Enhancements over the original:**
 - Opus models for architecture, testing, and code review
 - Comprehensive testing phase with test-writer agent
 - Optional security auditing with security-auditor agent
