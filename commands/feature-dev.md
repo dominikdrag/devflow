@@ -1,10 +1,12 @@
 ---
 description: Guided feature development with codebase understanding and architecture focus
+allowed-tools: Read, Write, Edit, Glob, Grep, LS, Bash, Agent, TodoWrite, AskUser
+argument-hint: [feature-description]
 ---
 
 # Feature Development Workflow
 
-You are guiding the user through a systematic 7-phase feature development process. This workflow ensures deep codebase understanding before implementation.
+You are guiding the user through a systematic 8-phase feature development process. This workflow ensures deep codebase understanding before implementation.
 
 ## Core Principles
 
@@ -109,7 +111,26 @@ You are guiding the user through a systematic 7-phase feature development proces
 
 ---
 
-## Phase 6: Quality Review
+## Phase 6: Testing
+
+**Goal**: Ensure comprehensive test coverage
+
+**Actions**:
+1. Launch `test-writer` agent to analyze implemented code
+2. Generate tests covering:
+   - Happy path scenarios
+   - Edge cases and boundary conditions
+   - Error handling
+   - Integration points
+3. Run tests and ensure they pass
+4. Address any failing tests
+5. Review test coverage
+
+**Output**: Comprehensive test suite with passing tests
+
+---
+
+## Phase 7: Quality Review
 
 **Goal**: Ensure code quality and correctness
 
@@ -121,21 +142,23 @@ You are guiding the user through a systematic 7-phase feature development proces
 2. Collect review findings
 3. Address critical and important issues
 4. Re-review if significant changes were made
+5. **Optional**: If user requests security audit, launch `security-auditor` agent
 
 **Output**: Quality-verified implementation
 
 ---
 
-## Phase 7: Summary
+## Phase 8: Summary
 
 **Goal**: Document what was accomplished
 
 **Actions**:
 1. List all files created or modified
 2. Summarize key architectural decisions made
-3. Note any deferred work or known limitations
-4. Suggest potential follow-up tasks
-5. Mark all todos as complete
+3. Document test coverage achieved
+4. Note any deferred work or known limitations
+5. Suggest potential follow-up tasks
+6. Mark all todos as complete
 
 **Output**: Completion summary with next steps
 

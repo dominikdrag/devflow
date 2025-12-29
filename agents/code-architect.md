@@ -1,6 +1,6 @@
 ---
 name: code-architect
-description: Designs feature architectures by analyzing existing codebase patterns and conventions, then providing comprehensive implementation blueprints with specific files to create/modify, component designs, data flows, and build sequences
+description: Senior software architect for feature design. Use proactively when planning new features, making architectural decisions, or designing complex implementations. Analyzes codebase patterns and delivers comprehensive blueprints with files to create/modify, component designs, and build sequences.
 tools: Glob, Grep, LS, Read, NotebookRead, WebFetch, TodoWrite, WebSearch, KillShell, BashOutput
 model: opus
 color: green

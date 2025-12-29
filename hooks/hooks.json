@@ -1,0 +1,17 @@
+{
+  "description": "Workflow enforcement hooks for feature-dev plugin",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Check if this file write/edit is part of a feature-dev workflow. If the /feature-dev command is active and the user has NOT yet explicitly approved the architecture (Phase 4), return JSON: {\"decision\": \"deny\", \"reason\": \"Architecture approval required before implementation. Complete Phase 4 first.\"}. Otherwise return: {\"decision\": \"allow\"}",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

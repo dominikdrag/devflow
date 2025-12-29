@@ -1,7 +1,7 @@
 {
   "name": "feature-dev",
-  "version": "1.0.0",
-  "description": "Comprehensive feature development workflow with specialized agents for codebase exploration, architecture design, and quality review. Enhanced with Opus models for architecture and code review.",
+  "version": "1.0.1",
+  "description": "8-phase feature development workflow with specialized agents for codebase exploration, architecture design, testing, security auditing, and quality review.",
   "author": {
     "name": "Dominik Drag"
   }
