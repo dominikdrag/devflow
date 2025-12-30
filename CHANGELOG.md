@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.3] - 2025-12-30
+
+### Changed
+- Architecture variations are now surfaced when proposals converge
+  - Distinguishes three scenarios: divergent, converged with variations, fully converged
+  - Minor variations (naming, patterns, error handling) presented as sub-options
+  - User can choose between variation points via `AskUserQuestion`
+
 ## [1.0.2] - 2025-12-30
 
 ### Fixed
