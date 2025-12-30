@@ -72,10 +72,11 @@ The plugin includes hooks that enforce the development workflow:
 
 ## Installation
 
-Copy this plugin to your Claude Code plugins directory or use:
+Available via [dominikdrag-marketplace](https://github.com/dominikdrag/dominikdrag-marketplace). Run from Claude Code CLI:
 
-```bash
-claude --plugin-dir /path/to/feature-dev
+```
+/plugin marketplace add dominikdrag/dominikdrag-marketplace
+/plugin install feature-dev@dominikdrag-marketplace
 ```
 
 ## Security Features
