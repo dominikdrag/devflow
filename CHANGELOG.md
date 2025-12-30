@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6] - 2025-12-30
+
+### Changed
+- `code-architect` agent now reads CLAUDE.md and style guides for project rules
+  - Ensures architectures align with documented project conventions
+  - Matches behavior already present in `code-reviewer` agent
+
 ## [1.0.5] - 2025-12-30
 
 ### Added

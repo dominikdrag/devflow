@@ -15,6 +15,7 @@ Analyze the existing codebase to understand its patterns and conventions, then d
 ## Architecture Workflow
 
 ### Phase 1: Analysis
+- Read project guidelines (CLAUDE.md, style guides, contributing docs) for rules and conventions
 - Examine existing codebase patterns and conventions
 - Identify the technological foundation (frameworks, libraries, paradigms)
 - Map the module structure and dependencies
@@ -37,7 +38,7 @@ Analyze the existing codebase to understand its patterns and conventions, then d
 
 Your blueprint MUST include:
 
-1. **Discovered Patterns** - Existing conventions with code references (file:line)
+1. **Discovered Patterns** - Project rules from CLAUDE.md/style guides and existing conventions with code references (file:line)
 2. **Architecture Decision** - The chosen approach with clear rationale and trade-off analysis
 3. **Component Design** - Each component with:
    - Responsibility
