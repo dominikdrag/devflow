@@ -63,9 +63,11 @@ At the start, confirm the configuration:
    - **If 1**: Focus on primary integration points and similar features
    - **If 2**: Split between (1) similar features and (2) integration points
    - **If 3+**: Distribute across similar features, related subsystems, and integration points
-2. Wait for agent results
+2. **WAIT for ALL agent results** - Do NOT proceed until every launched agent has returned
 3. Read the essential files identified by the agents
 4. Synthesize findings into a codebase understanding summary
+
+**CRITICAL**: You MUST wait for ALL exploration agents to return their complete output before proceeding to Phase 3. The exploration results are essential for asking informed clarifying questions. NEVER proceed to Phase 3 while agents are still running or before reviewing their findings.
 
 **Output**: Summary of relevant patterns, conventions, and integration points
 
