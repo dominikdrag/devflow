@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.1.2] - 2026-01-01
+
+### Added
+- `test-runner` agent (Haiku) for executing tests and reporting results
+  - Runs specified tests and provides structured summary
+  - Reports passed, failed, skipped tests with details
+  - Does not fix failures - only executes and reports
+
+### Changed
+- Phase 5 (Implementation) now validates existing tests after implementation
+  - Runs `test-runner` agent to check related tests still pass
+  - Fixes implementation issues before proceeding to testing phase
+- Phase 6 (Testing) now uses `test-runner` agent for test execution
+  - Replaces direct test running with structured agent-based execution
+  - Provides clearer feedback on test failures
+
 ## [1.1.0] - 2026-01-01
 
 ### Changed

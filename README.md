@@ -28,7 +28,7 @@ Agents include enhanced descriptions for automatic triggering:
 
 ## Command
 
-### `/feature-dev [feature-description]`
+### `/feature-dev [options] <feature-description>`
 
 Launches the guided 8-phase workflow:
 
@@ -46,6 +46,32 @@ Launches the guided 8-phase workflow:
 The plugin includes hooks that enforce the development workflow:
 
 - **Architecture Selection Gate**: Implementation cannot begin until user explicitly selects an architecture via `AskUserQuestion` (or provides their own approach)
+
+## Configuration
+
+### Agent Count Flags
+
+Control the number of agents launched per phase:
+
+| Flag | Default | Range | Phase |
+|------|---------|-------|-------|
+| `--explorers=N` | 3 | 1-5 | Phase 2: Codebase Exploration |
+| `--architects=N` | 3 | 1-5 | Phase 4: Architecture Design |
+| `--analyzers=N` | 1 | 1-5 | Phase 6: Testing |
+| `--reviewers=N` | 3 | 1-5 | Phase 7: Quality Review |
+
+### Examples
+
+```bash
+# Use fewer agents for smaller features
+/feature-dev --explorers=1 --architects=1 Add a utility function
+
+# More reviewers for critical features
+/feature-dev --reviewers=5 Implement payment processing
+
+# Minimal agents for quick iteration
+/feature-dev --explorers=1 --architects=1 --reviewers=1 Small change
+```
 
 ## Usage
 

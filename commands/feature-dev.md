@@ -164,6 +164,10 @@ At the start, confirm the configuration:
    - Keep changes minimal and focused
 4. Use TodoWrite to track implementation progress
 5. Commit logical chunks (if user requests commits)
+6. **Validate existing tests**:
+   - Launch `test-runner` agent to run tests related to the changes
+   - If tests fail, fix the implementation before proceeding
+   - Re-run tests until all pass
 
 **Guidelines**:
 - Follow existing code patterns exactly
@@ -171,7 +175,7 @@ At the start, confirm the configuration:
 - Don't refactor unrelated code
 - Keep implementations simple
 
-**Output**: Implemented feature
+**Output**: Implemented feature with passing existing tests
 
 ---
 
@@ -179,7 +183,7 @@ At the start, confirm the configuration:
 
 **Goal**: Ensure comprehensive test coverage with user-approved strategy
 
-**Approach**: Use a `test-analyzer` agent to propose test cases, present the analysis to the user for approval, then write tests directly (not delegated) to preserve local context from implementation.
+**Approach**: Use a `test-analyzer` agent to propose test cases, present the analysis to the user for approval, then write tests directly (not delegated) to preserve local context from implementation. Use `test-runner` agent to execute tests and report results.
 
 **Actions**:
 1. Launch {analyzers} `test-analyzer` agent(s) to analyze the implemented changes:
@@ -203,8 +207,15 @@ At the start, confirm the configuration:
    - Edge cases and boundary conditions
    - Error handling paths
    - Integration points with existing code
-6. Run tests and ensure they pass
-7. Address any failing tests
+6. **Execute tests using `test-runner` agent**:
+   - Pass the test files/patterns from the approved test plan
+   - Agent runs tests and returns structured results
+7. **Handle test results**:
+   - If all tests pass, proceed to Phase 7
+   - If tests fail:
+     - Review the failure report from `test-runner`
+     - Fix the failing tests (adjust test code or implementation as needed)
+     - Re-run `test-runner` until all pass
 
 **CRITICAL**: Do NOT write tests until user has made an explicit selection via `AskUserQuestion`.
 
@@ -212,6 +223,7 @@ At the start, confirm the configuration:
 - Analyzer agent provides structured, comprehensive test proposals
 - User approval ensures alignment with expectations before effort is spent
 - Writing tests directly preserves local context from implementation
+- Test-runner agent provides structured, parseable test results
 - Results in better test quality than delegating to an agent without context
 
 **Test Quality Standards**:
