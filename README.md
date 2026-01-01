@@ -12,7 +12,8 @@ This plugin guides you through a systematic 8-phase feature development process 
 |-------|-------|-------|---------|
 | `code-explorer` | Sonnet | Yellow | Analyzes codebase, traces execution paths, maps architecture |
 | `code-architect` | **Opus** | Green | Designs feature architectures with comprehensive blueprints |
-| `test-analyzer` | Sonnet | Yellow | Analyzes changes and proposes comprehensive test plans |
+| `test-analyzer` | **Opus** | Yellow | Analyzes changes and proposes comprehensive test plans |
+| `test-runner` | Haiku | Green | Executes tests and reports structured results |
 | `security-auditor` | Sonnet | Red | Deep security analysis (optional, on request) |
 | `code-reviewer` | **Opus** | Red | Reviews code for bugs, security, and convention adherence |
 
@@ -23,6 +24,7 @@ Agents include enhanced descriptions for automatic triggering:
 - **code-explorer**: Triggers when exploring unfamiliar code or tracing existing features
 - **code-architect**: Triggers when designing new features or planning implementations
 - **test-analyzer**: Triggers when analyzing code to propose test cases
+- **test-runner**: Triggers when executing tests and reporting results
 - **security-auditor**: Triggers only on explicit user request (optional)
 - **code-reviewer**: Triggers after code changes or on review requests
 
@@ -34,10 +36,10 @@ Launches the guided 8-phase workflow:
 
 1. **Discovery** - Understand requirements
 2. **Codebase Exploration** - Learn existing patterns with parallel explorer agents
-3. **Clarifying Questions** - Resolve all ambiguities
+3. **Clarifying Questions** - Iterative dialogue to resolve all ambiguities
 4. **Architecture Design** - Design approach with architect agents (user selects from options)
-5. **Implementation** - Build following approved architecture
-6. **Testing** - Analyze with test-analyzer, then write tests directly (preserves context)
+5. **Implementation** - Build following approved architecture, validate existing tests pass
+6. **Testing** - Propose tests with test-analyzer (user approval required), write tests, run with test-runner
 7. **Quality Review** - Review with parallel reviewer agents (+ optional security audit)
 8. **Summary** - Document completion
 
@@ -120,8 +122,9 @@ To request a security audit, ask during the Quality Review phase.
 This plugin is based on [Anthropic's official feature-dev plugin](https://github.com/anthropics/claude-code/tree/main/plugins/feature-dev).
 
 **Enhancements over the original:**
-- Opus models for architecture and code review
-- Testing phase with test-analyzer for proposals, direct writing for context preservation
+- Opus models for architecture, test analysis, and code review
+- Testing phase with test-analyzer for proposals (user approval required), direct writing for context preservation, test-runner for execution
+- Test validation in implementation phase ensures existing tests pass before writing new ones
 - Optional security auditing with security-auditor agent
 - Workflow enforcement hooks
 - Enhanced agent descriptions for better auto-triggering
