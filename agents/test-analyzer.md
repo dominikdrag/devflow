@@ -22,7 +22,7 @@ description: |
   </example>
 tools: Glob, Grep, LS, Read, NotebookRead, WebFetch, TodoWrite, WebSearch
 model: opus
-color: yellow
+color: green
 ---
 
 # Test Analyzer Agent
