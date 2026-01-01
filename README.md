@@ -45,8 +45,9 @@ Launches the guided 8-phase workflow:
 
 ## Workflow Enforcement
 
-The plugin includes hooks that enforce the development workflow:
+The plugin includes gates that enforce the development workflow:
 
+- **Exploration Completion Gate**: Phase 3 (Clarifying Questions) cannot begin until ALL exploration agents have returned their complete output
 - **Architecture Selection Gate**: Implementation cannot begin until user explicitly selects an architecture via `AskUserQuestion` (or provides their own approach)
 
 ## Configuration

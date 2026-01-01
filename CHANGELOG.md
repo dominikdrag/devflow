@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3] - 2026-01-01
+
+### Fixed
+- Phase 2 now enforces waiting for ALL exploration agents before proceeding to Phase 3
+  - Added explicit blocking requirement similar to Phase 4's architecture approval gate
+  - Ensures clarifying questions are informed by complete codebase exploration results
+
 ## [1.1.2] - 2026-01-01
 
 ### Added
