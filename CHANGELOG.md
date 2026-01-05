@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.1.0] - 2026-01-05
+
+### Added
+- **New Phase 5: Planning** - Creates implementation plan before coding begins
+  - Consolidates outputs from phases 1-4 into a comprehensive plan
+  - Defines discrete tasks with IDs (`TASK-NNN`, `TEST-NNN`, `REVIEW-NNN`)
+  - Defines acceptance criteria (`AC-NNN`)
+  - Writes plan to `.claude/devflow-plan.md` (Markdown for human readability)
+  - Requires explicit user approval before implementation begins
+- Task-level progress tracking throughout implementation
+  - Plan file tracks completed tasks with checkboxes (`- [x]`)
+  - Progress log records timestamps of key events
+- Enhanced workflow resumption after compaction
+  - PreCompact hook now updates plan file progress
+  - Resume logic displays current task and remaining count
+
+### Changed
+- Workflow expanded from 8 to 9 phases (Planning inserted after Architecture Design)
+- Implementation phase now reads and updates the plan file
+- PreCompact hook timeout increased from 60s to 90s to accommodate plan file updates
+- Phase numbering shifted: Implementation→6, Testing→7, Quality Review→8, Summary→9
+- Summary phase now deletes both state file and plan file
+
 ## [2.0.0] - 2026-01-05
 
 ### Changed

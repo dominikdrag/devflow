@@ -6,7 +6,7 @@ argument-hint: [--explorers=N] [--architects=N] [--analyzers=N] [--reviewers=N] 
 
 # Feature Development Workflow
 
-You are guiding the user through a systematic 8-phase feature development process. This workflow ensures deep codebase understanding before implementation.
+You are guiding the user through a systematic 9-phase feature development process. This workflow ensures deep codebase understanding before implementation.
 
 ## Core Principles
 
@@ -26,6 +26,10 @@ This workflow uses a state file (`.claude/devflow-state.json`) to persist progre
 **FIRST**, check if `.claude/devflow-state.json` exists:
 - **If file exists and `active: true`**: This is a RESUMED workflow
   - Read the state file to understand current progress
+  - **If `.claude/devflow-plan.md` exists**: Read the plan file
+    - Identify the current task from `currentTask` in state file
+    - Count remaining unchecked tasks (lines matching `- [ ]`)
+    - Display: "Current task: {currentTask}, {N} tasks remaining"
   - Inform the user: "Resuming devflow workflow from Phase {currentPhase}"
   - Display completed phases and key decisions from the state
   - Continue from the current phase (do NOT restart from Phase 1)
@@ -41,6 +45,7 @@ This workflow uses a state file (`.claude/devflow-state.json`) to persist progre
   "currentPhase": 1,
   "completedPhases": [],
   "featureDescription": "...",
+  "currentTask": null,
   "decisions": {
     "architecture": null,
     "testStrategy": null
@@ -199,18 +204,111 @@ At the start, confirm the configuration:
 
 ---
 
-## Phase 5: Implementation
+## Phase 5: Planning
 
-**Goal**: Build the feature following the approved architecture
+**Goal**: Create a comprehensive implementation plan before coding begins
 
 **Actions**:
-1. **Only begin after explicit user approval of architecture**
-2. Follow the implementation sequence from the blueprint
-3. For each component:
+1. **Consolidate Information**: Gather all outputs from Phases 1-4:
+   - Feature requirements and constraints (Discovery)
+   - Codebase patterns and integration points (Exploration)
+   - Clarification decisions (Q&A)
+   - Selected architecture with rationale
+
+2. **Define Implementation Tasks**: Break down the work into discrete, actionable tasks:
+   - Create tasks for each file to be created/modified
+   - Group tasks by phase (Implementation, Testing, Quality)
+   - Establish task dependencies where needed
+   - Assign task IDs: `TASK-NNN` for implementation, `TEST-NNN` for testing, `REVIEW-NNN` for quality
+
+3. **Define Acceptance Criteria**: Extract or derive acceptance criteria from requirements
+   - Each criterion should be testable/verifiable
+   - Assign IDs: `AC-NNN`
+
+4. **Write Plan File**: Create `.claude/devflow-plan.md` with this structure:
+   ```markdown
+   # Feature Development Plan
+
+   > **Status**: In Progress
+   > **Current Task**: [none]
+   > **Created**: [ISO timestamp]
+   > **Last Updated**: [ISO timestamp]
+
+   ## Feature Overview
+   [Summary from Phase 1]
+
+   ## Codebase Context
+   [Key patterns and integration points from Phase 2]
+
+   ## Clarifications
+   [Key decisions from Phase 3]
+
+   ## Selected Architecture
+   [Chosen architecture and rationale from Phase 4]
+
+   ## Implementation Tasks
+   - [ ] **TASK-001**: [description]
+     - Files: `path/to/file.ts`
+     - Depends on: none
+   - [ ] **TASK-002**: [description]
+     - Files: `path/to/file.ts`
+     - Depends on: TASK-001
+
+   ## Testing Tasks
+   - [ ] **TEST-001**: [description]
+
+   ## Quality Tasks
+   - [ ] **REVIEW-001**: Run code reviewers
+   - [ ] **REVIEW-002**: Apply selected fixes
+
+   ## Acceptance Criteria
+   - [ ] **AC-001**: [criterion]
+   - [ ] **AC-002**: [criterion]
+
+   ## Progress Log
+   | Timestamp | Event |
+   |-----------|-------|
+   | [ISO] | Planning phase completed |
+   ```
+
+5. **Present Plan Summary**: Display to the user:
+   - Total task count by category (Implementation, Testing, Quality)
+   - Files to be created/modified
+   - Acceptance criteria count
+
+6. **Plan Approval**: Use `AskUserQuestion` with options:
+   - "Proceed with this plan"
+   - "Modify the plan" (user describes changes)
+   - "Add more tasks"
+
+7. If user selects "Modify the plan" or "Add more tasks":
+   - Wait for user input
+   - Update the plan file accordingly
+   - Re-present summary and ask again
+
+8. **Finalize**: Add approval timestamp to progress log
+
+**CRITICAL**: Do NOT proceed to Phase 6 until user explicitly approves the plan via `AskUserQuestion`.
+
+**Output**: `.claude/devflow-plan.md` file ready to guide implementation
+
+---
+
+## Phase 6: Implementation
+
+**Goal**: Build the feature following the approved plan
+
+**Actions**:
+1. **Only begin after explicit user approval of plan in Phase 5**
+2. **Read the plan file** (`.claude/devflow-plan.md`) to get the task list
+3. For each task in the "Implementation Tasks" section:
+   - Update state file with `currentTask: "TASK-NNN"`
    - Read existing similar code for patterns
    - Implement following established conventions
    - Keep changes minimal and focused
-4. Use TodoWrite to track implementation progress
+   - **Mark task complete in plan file**: Change `- [ ]` to `- [x]`, add `Completed: [timestamp]` line
+   - Add progress log entry: `| [timestamp] | TASK-NNN completed |`
+4. Use TodoWrite to track implementation progress (mirrors plan file)
 5. Commit logical chunks (if user requests commits)
 6. **Validate existing tests**:
    - Launch `test-runner` agent to run tests related to the changes
@@ -222,12 +320,13 @@ At the start, confirm the configuration:
 - Don't add unrequested features
 - Don't refactor unrelated code
 - Keep implementations simple
+- **Update plan file after each task completion**
 
-**Output**: Implemented feature with passing existing tests
+**Output**: Implemented feature with passing existing tests, updated plan file
 
 ---
 
-## Phase 6: Testing
+## Phase 7: Testing
 
 **Goal**: Ensure comprehensive test coverage with user-approved strategy
 
@@ -259,7 +358,7 @@ At the start, confirm the configuration:
    - Pass the test files/patterns from the approved test plan
    - Agent runs tests and returns structured results
 7. **Handle test results**:
-   - If all tests pass, proceed to Phase 7
+   - If all tests pass, proceed to Phase 8
    - If tests fail:
      - Review the failure report from `test-runner`
      - Fix the failing tests (adjust test code or implementation as needed)
@@ -286,7 +385,7 @@ At the start, confirm the configuration:
 
 ---
 
-## Phase 7: Quality Review
+## Phase 8: Quality Review
 
 **Goal**: Ensure code quality and correctness through user-reviewed findings
 
@@ -351,7 +450,7 @@ If user chooses re-review, return to Step 1 with a focused scope.
 
 ---
 
-## Phase 8: Summary
+## Phase 9: Summary
 
 **Goal**: Document what was accomplished and clean up workflow state
 
@@ -362,7 +461,9 @@ If user chooses re-review, return to Step 1 with a focused scope.
 4. Note any deferred work or known limitations
 5. Suggest potential follow-up tasks
 6. Mark all todos as complete
-7. **Delete the state file** (`.claude/devflow-state.json`) to mark workflow as complete
+7. **Mark all acceptance criteria** in plan file as complete (or note incomplete ones)
+8. **Delete the state file** (`.claude/devflow-state.json`) to mark workflow as complete
+9. **Delete the plan file** (`.claude/devflow-plan.md`) to clean up
 
 **Output**: Completion summary with next steps
 
@@ -391,8 +492,8 @@ This workflow is invoked with `/feature` followed by optional flags and a featur
 |------|---------|-------|-------|
 | `--explorers=N` | 3 | 1-5 | Phase 2: Codebase Exploration |
 | `--architects=N` | 3 | 1-5 | Phase 4: Architecture Design |
-| `--analyzers=N` | 1 | 1-5 | Phase 6: Testing |
-| `--reviewers=N` | 3 | 1-5 | Phase 7: Quality Review |
+| `--analyzers=N` | 1 | 1-5 | Phase 7: Testing |
+| `--reviewers=N` | 3 | 1-5 | Phase 8: Quality Review |
 
 If no description is provided, ask the user what feature they want to build.
 

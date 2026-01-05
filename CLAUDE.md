@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a Claude Code plugin that provides an 8-phase feature development workflow. It uses specialized agents for codebase exploration, architecture design, test analysis, security auditing, and code review.
+This is a Claude Code plugin that provides a 9-phase feature development workflow. It uses specialized agents for codebase exploration, architecture design, test analysis, security auditing, and code review.
 
 ## Plugin Structure
 
@@ -48,10 +48,11 @@ If the prompt-based approach proves unreliable, NOTES.md documents an alternativ
 2. Codebase Exploration - Launch 3 parallel `code-explorer` agents
 3. Clarifying Questions - Resolve ambiguities
 4. Architecture Design - Launch 3 `code-architect` agents, present options via `AskUserQuestion`
-5. Implementation - Build after user selects architecture
-6. Testing - Launch `test-analyzer` agent for proposals, then write tests directly (preserves context)
-7. Quality Review - Launch 3 parallel `code-reviewer` agents (+ optional `security-auditor`)
-8. Summary - Document completion
+5. Planning - Create implementation plan with task-level tracking (`.claude/devflow-plan.md`)
+6. Implementation - Build following approved plan, update task progress
+7. Testing - Launch `test-analyzer` agent for proposals, then write tests directly (preserves context)
+8. Quality Review - Launch 3 parallel `code-reviewer` agents (+ optional `security-auditor`)
+9. Summary - Document completion, clean up state and plan files
 
 ## Key Design Decisions
 

@@ -4,7 +4,7 @@ Comprehensive feature development workflow with specialized agents for codebase 
 
 ## Overview
 
-This plugin guides you through a systematic 8-phase feature development process that ensures deep codebase understanding before implementation. It uses specialized agents powered by different models for optimal results.
+This plugin guides you through a systematic 9-phase feature development process that ensures deep codebase understanding before implementation. It uses specialized agents powered by different models for optimal results.
 
 ## Agents
 
@@ -32,23 +32,25 @@ Agents include enhanced descriptions for automatic triggering:
 
 ### `/feature [options] <feature-description>`
 
-Launches the guided 8-phase workflow:
+Launches the guided 9-phase workflow:
 
 1. **Discovery** - Understand requirements
 2. **Codebase Exploration** - Learn existing patterns with parallel explorer agents
 3. **Clarifying Questions** - Iterative dialogue to resolve all ambiguities
 4. **Architecture Design** - Design approach with architect agents (user selects from options)
-5. **Implementation** - Build following approved architecture, validate existing tests pass
-6. **Testing** - Propose tests with test-analyzer (user approval required), write tests, run with test-runner
-7. **Quality Review** - Review with parallel reviewer agents, present findings for user selection (+ optional security audit)
-8. **Summary** - Document completion
+5. **Planning** - Create implementation plan with task-level tracking (user approval required)
+6. **Implementation** - Build following approved plan, update task progress in plan file
+7. **Testing** - Propose tests with test-analyzer (user approval required), write tests, run with test-runner
+8. **Quality Review** - Review with parallel reviewer agents, present findings for user selection (+ optional security audit)
+9. **Summary** - Document completion, clean up state and plan files
 
 ## Workflow Enforcement
 
 The plugin includes gates that enforce the development workflow:
 
 - **Exploration Completion Gate**: Phase 3 (Clarifying Questions) cannot begin until ALL exploration agents have returned their complete output
-- **Architecture Selection Gate**: Implementation cannot begin until user explicitly selects an architecture via `AskUserQuestion` (or provides their own approach)
+- **Architecture Selection Gate**: Planning phase cannot begin until user explicitly selects an architecture via `AskUserQuestion` (or provides their own approach)
+- **Planning Approval Gate**: Implementation cannot begin until user explicitly approves the implementation plan
 - **Quality Review Gate**: Fixes are not applied until user reviews consolidated findings and explicitly selects which issues to address
 
 ## Configuration
@@ -61,8 +63,8 @@ Control the number of agents launched per phase:
 |------|---------|-------|-------|
 | `--explorers=N` | 3 | 1-5 | Phase 2: Codebase Exploration |
 | `--architects=N` | 3 | 1-5 | Phase 4: Architecture Design |
-| `--analyzers=N` | 1 | 1-5 | Phase 6: Testing |
-| `--reviewers=N` | 3 | 1-5 | Phase 7: Quality Review |
+| `--analyzers=N` | 1 | 1-5 | Phase 7: Testing |
+| `--reviewers=N` | 3 | 1-5 | Phase 8: Quality Review |
 
 ### Examples
 

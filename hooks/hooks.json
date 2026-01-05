@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Check if this operation targets the workflow state file. For Write/Edit: check if file_path ends with '.claude/devflow-state.json'. For Bash: check if command matches pattern 'rm.*\\.claude/devflow-state\\.json'. If YES (state file operation), return: {\"decision\": \"allow\", \"reason\": \"Auto-approving state file operation\"}. If NO (other operation), return: {\"decision\": \"allow\"} to let subsequent hooks evaluate.",
+            "prompt": "Check if this operation targets a workflow file. For Write/Edit: check if file_path ends with '.claude/devflow-state.json' OR '.claude/devflow-plan.md'. For Bash: check if command matches pattern 'rm.*\\.claude/devflow-state\\.json' OR 'rm.*\\.claude/devflow-plan\\.md'. If YES (workflow file operation), return: {\"decision\": \"allow\", \"reason\": \"Auto-approving workflow file operation\"}. If NO (other operation), return: {\"decision\": \"allow\"} to let subsequent hooks evaluate.",
             "timeout": 15
           }
         ]
@@ -28,8 +28,8 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Check if a /feature workflow is active. If YES: 1) Identify the current phase (1-8) based on conversation progress. 2) List completed phases. 3) Note key decisions (selected architecture, test strategy approval). 4) Write this state to .claude/devflow-state.json using Write tool with format: {\"active\": true, \"currentPhase\": N, \"completedPhases\": [...], \"decisions\": {...}, \"summary\": \"brief context\"}. Return: {\"decision\": \"allow\"}. If NO active workflow, return: {\"decision\": \"allow\"}.",
-            "timeout": 60
+            "prompt": "Check if a /feature workflow is active. If YES: 1) Identify the current phase (1-9) based on conversation progress. 2) List completed phases. 3) Note key decisions (selected architecture, test strategy approval). 4) Identify the current task being worked on (e.g., TASK-001). 5) Write state to .claude/devflow-state.json using Write tool with format: {\"active\": true, \"currentPhase\": N, \"completedPhases\": [...], \"currentTask\": \"TASK-NNN\" or null, \"decisions\": {...}, \"summary\": \"brief context\"}. 6) If .claude/devflow-plan.md exists, update it: a) Update the Status block's Current Task field, b) Add a progress log entry with timestamp and current state, c) Mark any completed tasks with [x] if not already marked. Return: {\"decision\": \"allow\"}. If NO active workflow, return: {\"decision\": \"allow\"}.",
+            "timeout": 90
           }
         ]
       }
