@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.0] - 2026-01-05
+
+### Changed
+- **BREAKING**: Renamed plugin from `feature-dev` to `devflow` to avoid conflict with Anthropic's official plugin
+- **BREAKING**: Renamed command from `/feature-dev` to `/feature`
+- Renamed state file from `.claude/feature-dev-state.json` to `.claude/devflow-state.json`
+- Updated all internal references and documentation
+
+### Migration
+- Users should reinstall: `/plugin install devflow@dominikdrag-marketplace`
+- Update any scripts or documentation referencing `/feature-dev` to `/feature`
+
 ## [1.1.8] - 2026-01-05
 
 ### Changed
@@ -145,5 +157,5 @@
 - `code-explorer` agent (Sonnet) for codebase analysis
 - `code-architect` agent (Opus) for architecture design
 - `code-reviewer` agent (Opus) for code review
-- `/feature-dev` command for guided feature development
+- `/feature-dev` command for guided feature development (renamed to `/feature` in v2.0.0)
 - Acknowledgement linking to Anthropic's official feature-dev plugin

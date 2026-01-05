@@ -1,5 +1,5 @@
 {
-  "description": "Workflow enforcement hooks for feature-dev plugin",
+  "description": "Workflow enforcement hooks for devflow plugin",
   "hooks": {
     "PreToolUse": [
       {
@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Check if this operation targets the workflow state file. For Write/Edit: check if file_path ends with '.claude/feature-dev-state.json'. For Bash: check if command matches pattern 'rm.*\\.claude/feature-dev-state\\.json'. If YES (state file operation), return: {\"decision\": \"allow\", \"reason\": \"Auto-approving state file operation\"}. If NO (other operation), return: {\"decision\": \"allow\"} to let subsequent hooks evaluate.",
+            "prompt": "Check if this operation targets the workflow state file. For Write/Edit: check if file_path ends with '.claude/devflow-state.json'. For Bash: check if command matches pattern 'rm.*\\.claude/devflow-state\\.json'. If YES (state file operation), return: {\"decision\": \"allow\", \"reason\": \"Auto-approving state file operation\"}. If NO (other operation), return: {\"decision\": \"allow\"} to let subsequent hooks evaluate.",
             "timeout": 15
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Check if this is a feature-dev workflow. If /feature-dev is active, look for evidence that the user explicitly selected an architecture option via AskUserQuestion response (e.g., 'Option A', 'Option B', 'Proceed with recommended', or confirmed a custom approach). If NO such selection is visible in the conversation, return: {\"decision\": \"deny\", \"reason\": \"Architecture selection required. Use AskUserQuestion to let user choose an architecture before implementing.\"}. If selection IS visible, return: {\"decision\": \"allow\"}",
+            "prompt": "Check if this is a devflow workflow. If /feature is active, look for evidence that the user explicitly selected an architecture option via AskUserQuestion response (e.g., 'Option A', 'Option B', 'Proceed with recommended', or confirmed a custom approach). If NO such selection is visible in the conversation, return: {\"decision\": \"deny\", \"reason\": \"Architecture selection required. Use AskUserQuestion to let user choose an architecture before implementing.\"}. If selection IS visible, return: {\"decision\": \"allow\"}",
             "timeout": 30
           }
         ]
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Check if a /feature-dev workflow is active. If YES: 1) Identify the current phase (1-8) based on conversation progress. 2) List completed phases. 3) Note key decisions (selected architecture, test strategy approval). 4) Write this state to .claude/feature-dev-state.json using Write tool with format: {\"active\": true, \"currentPhase\": N, \"completedPhases\": [...], \"decisions\": {...}, \"summary\": \"brief context\"}. Return: {\"decision\": \"allow\"}. If NO active workflow, return: {\"decision\": \"allow\"}.",
+            "prompt": "Check if a /feature workflow is active. If YES: 1) Identify the current phase (1-8) based on conversation progress. 2) List completed phases. 3) Note key decisions (selected architecture, test strategy approval). 4) Write this state to .claude/devflow-state.json using Write tool with format: {\"active\": true, \"currentPhase\": N, \"completedPhases\": [...], \"decisions\": {...}, \"summary\": \"brief context\"}. Return: {\"decision\": \"allow\"}. If NO active workflow, return: {\"decision\": \"allow\"}.",
             "timeout": 60
           }
         ]

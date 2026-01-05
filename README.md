@@ -1,4 +1,4 @@
-# Feature Development Plugin
+# Devflow Plugin
 
 Comprehensive feature development workflow with specialized agents for codebase exploration, architecture design, security auditing, and quality review.
 
@@ -30,7 +30,7 @@ Agents include enhanced descriptions for automatic triggering:
 
 ## Command
 
-### `/feature-dev [options] <feature-description>`
+### `/feature [options] <feature-description>`
 
 Launches the guided 8-phase workflow:
 
@@ -68,23 +68,23 @@ Control the number of agents launched per phase:
 
 ```bash
 # Use fewer agents for smaller features
-/feature-dev --explorers=1 --architects=1 Add a utility function
+/feature --explorers=1 --architects=1 Add a utility function
 
 # More reviewers for critical features
-/feature-dev --reviewers=5 Implement payment processing
+/feature --reviewers=5 Implement payment processing
 
 # Minimal agents for quick iteration
-/feature-dev --explorers=1 --architects=1 --reviewers=1 Small change
+/feature --explorers=1 --architects=1 --reviewers=1 Small change
 ```
 
 ## Usage
 
 ```bash
 # With feature description
-/feature-dev Add user authentication with OAuth support
+/feature Add user authentication with OAuth support
 
 # Interactive mode
-/feature-dev
+/feature
 ```
 
 ## When to Use
@@ -106,7 +106,7 @@ Available via [dominikdrag-marketplace](https://github.com/dominikdrag/dominikdr
 
 ```
 /plugin marketplace add dominikdrag/dominikdrag-marketplace
-/plugin install feature-dev@dominikdrag-marketplace
+/plugin install devflow@dominikdrag-marketplace
 ```
 
 ## Security Features
@@ -121,7 +121,7 @@ To request a security audit, ask during the Quality Review phase.
 
 ## Acknowledgements
 
-This plugin is based on [Anthropic's official feature-dev plugin](https://github.com/anthropics/claude-code/tree/main/plugins/feature-dev).
+This plugin was originally based on [Anthropic's official feature-dev plugin](https://github.com/anthropics/claude-code/tree/main/plugins/feature-dev) but has since diverged significantly.
 
 **Enhancements over the original:**
 - Opus models for architecture, test analysis, and code review

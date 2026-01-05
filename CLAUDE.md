@@ -9,7 +9,7 @@ This is a Claude Code plugin that provides an 8-phase feature development workfl
 ## Plugin Structure
 
 ```
-feature-dev/
+devflow/
 ├── .claude-plugin/plugin.json    # Plugin manifest (name, version, description)
 ├── agents/                        # Agent definitions (markdown with YAML frontmatter)
 │   ├── code-explorer.md          # Sonnet - traces execution paths, maps architecture
@@ -17,7 +17,7 @@ feature-dev/
 │   ├── code-reviewer.md          # Opus - reviews for bugs and convention adherence
 │   ├── test-analyzer.md          # Sonnet - analyzes code, proposes test cases
 │   └── security-auditor.md       # Sonnet - OWASP Top 10 checks (optional)
-├── commands/feature-dev.md       # Main workflow command definition
+├── commands/feature.md           # Main workflow command definition
 └── hooks/hooks.json              # Workflow enforcement hooks
 ```
 
@@ -40,7 +40,7 @@ color: yellow|green|red           # Status line color
 
 The plugin uses a `PreToolUse` hook on `Write|Edit` operations to enforce the architecture approval gate. The prompt-based hook checks that the user has explicitly selected an architecture via `AskUserQuestion` before allowing implementation.
 
-If the prompt-based approach proves unreliable, NOTES.md documents an alternative state-file approach using `.claude/feature-dev-approved.tmp`.
+If the prompt-based approach proves unreliable, NOTES.md documents an alternative state-file approach using `.claude/devflow-approved.tmp`.
 
 ## Workflow Phases
 

@@ -19,14 +19,14 @@ You are guiding the user through a systematic 8-phase feature development proces
 
 ## Workflow State Management
 
-This workflow uses a state file (`.claude/feature-dev-state.json`) to persist progress across conversation compaction and session interruptions.
+This workflow uses a state file (`.claude/devflow-state.json`) to persist progress across conversation compaction and session interruptions.
 
 ### On Workflow Start
 
-**FIRST**, check if `.claude/feature-dev-state.json` exists:
+**FIRST**, check if `.claude/devflow-state.json` exists:
 - **If file exists and `active: true`**: This is a RESUMED workflow
   - Read the state file to understand current progress
-  - Inform the user: "Resuming feature-dev workflow from Phase {currentPhase}"
+  - Inform the user: "Resuming devflow workflow from Phase {currentPhase}"
   - Display completed phases and key decisions from the state
   - Continue from the current phase (do NOT restart from Phase 1)
 - **If file does not exist**: This is a NEW workflow
@@ -362,7 +362,7 @@ If user chooses re-review, return to Step 1 with a focused scope.
 4. Note any deferred work or known limitations
 5. Suggest potential follow-up tasks
 6. Mark all todos as complete
-7. **Delete the state file** (`.claude/feature-dev-state.json`) to mark workflow as complete
+7. **Delete the state file** (`.claude/devflow-state.json`) to mark workflow as complete
 
 **Output**: Completion summary with next steps
 
@@ -370,19 +370,19 @@ If user chooses re-review, return to Step 1 with a focused scope.
 
 ## Usage
 
-This workflow is invoked with `/feature-dev` followed by optional flags and a feature description:
+This workflow is invoked with `/feature` followed by optional flags and a feature description:
 
 ### Basic Usage
 ```
-/feature-dev Add user authentication with OAuth support
-/feature-dev
+/feature Add user authentication with OAuth support
+/feature
 ```
 
 ### With Agent Count Overrides
 ```
-/feature-dev --explorers=2 --architects=2 Add user authentication
-/feature-dev --reviewers=5 Implement payment processing
-/feature-dev --explorers=1 --architects=1 --reviewers=1 Small utility function
+/feature --explorers=2 --architects=2 Add user authentication
+/feature --reviewers=5 Implement payment processing
+/feature --explorers=1 --architects=1 --reviewers=1 Small utility function
 ```
 
 ### Flag Reference
