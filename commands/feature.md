@@ -374,6 +374,12 @@ At the start, confirm the configuration:
 - Test-runner agent provides structured, parseable test results
 - Results in better test quality than delegating to an agent without context
 
+**Plan File Updates** (after each testing task):
+- Mark completed TEST-NNN tasks: Change `- [ ]` to `- [x]`, add `Completed: [timestamp]`
+- Update header: `Current Task: TEST-NNN`, `Last Updated: [timestamp]`
+- Add progress log entry: `| [timestamp] | TEST-NNN completed |`
+- When all tests pass, add: `| [timestamp] | Testing phase completed |`
+
 **Test Quality Standards**:
 - Test names clearly describe what is being tested
 - Each test focuses on a single behavior
@@ -445,6 +451,14 @@ If any fixes were applied, use `AskUserQuestion` to ask:
 
 If user chooses re-review, return to Step 1 with a focused scope.
 
+**Plan File Updates**:
+- At phase start: Add `| [timestamp] | Quality review initiated |` to progress log
+- After user selects fixes: Add `| [timestamp] | User selected {count} issues to fix |`
+- After applying fixes: Mark `REVIEW-NNN` tasks complete with `Completed: [timestamp]`
+- After re-review (if done): Add `| [timestamp] | Re-review completed |`
+- At phase end: Add `| [timestamp] | Quality review phase completed |`
+- Update header: `Current Task`, `Last Updated`
+
 **Output**: Quality-verified implementation with user-approved fixes
 
 ---
@@ -460,9 +474,18 @@ If user chooses re-review, return to Step 1 with a focused scope.
 4. Note any deferred work or known limitations
 5. Suggest potential follow-up tasks
 6. Mark all todos as complete
-7. **Mark all acceptance criteria** in plan file as complete (or note incomplete ones)
-8. **Delete the state file** (`claude-tmp/devflow-state.json`) to mark workflow as complete
-9. **Delete the plan file** (`claude-tmp/devflow-plan.md`) to clean up
+
+**Plan File Updates**:
+1. Update header: Set `Status: Complete` (or `Status: Incomplete` if any tasks failed), update `Last Updated`
+2. Mark acceptance criteria: Change `- [ ]` to `- [x]` for completed, add notes for incomplete
+3. Add final progress log entries:
+   - `| [timestamp] | Acceptance criteria reviewed |`
+   - `| [timestamp] | Feature development completed |`
+
+**Cleanup** (conditional):
+- Delete state file (`claude-tmp/devflow-state.json`)
+- **Only delete plan file if ALL tasks and acceptance criteria are complete**
+- If any tasks are incomplete, keep `devflow-plan.md` as a record of unfinished work
 
 **Output**: Completion summary with next steps
 
