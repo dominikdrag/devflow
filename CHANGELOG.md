@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.1.1] - 2026-01-06
+
+### Changed
+- Moved state files from `.claude/` to `claude-tmp/` directory
+  - `claude-tmp/devflow-state.json` - workflow state persistence
+  - `claude-tmp/devflow-plan.md` - implementation plan
+  - Enables auto-edit permission rules in `.claude/settings.local.json`
+- Updated hooks to recognize new state file paths
+
 ## [2.1.0] - 2026-01-05
 
 ### Added

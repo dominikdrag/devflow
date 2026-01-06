@@ -5,13 +5,13 @@
 The current hook uses a prompt-based approach to detect if the user selected an architecture via `AskUserQuestion`.
 
 **If this proves unreliable**, switch to state file approach:
-- Phase 4 writes `.claude/devflow-approved.tmp` when user makes selection
+- Phase 4 writes `claude-tmp/devflow-approved.tmp` when user makes selection
 - Hook uses `type: "bash"` to check if file exists
 - Phase 8 cleans up the temp file
 
 ## Workflow State Persistence (Compaction Recovery)
 
-The workflow uses a state file (`.claude/devflow-state.json`) to persist progress across:
+The workflow uses a state file (`claude-tmp/devflow-state.json`) to persist progress across:
 - Conversation compaction (automatic summarization when context gets long)
 - Session interruptions
 
@@ -28,7 +28,7 @@ A PreToolUse hook automatically approves Write/Edit/Bash operations on the state
 
 **Hook Configuration** (hooks/hooks.json):
 - Matcher: `Write|Edit|Bash` (positioned first in PreToolUse array)
-- Checks if operation targets `.claude/devflow-state.json`
+- Checks if operation targets `claude-tmp/devflow-state.json`
 - Auto-approves matching operations
 - Allows non-matching operations to pass through to subsequent hooks
 

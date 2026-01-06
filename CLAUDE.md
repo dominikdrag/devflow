@@ -40,7 +40,7 @@ color: yellow|green|red           # Status line color
 
 The plugin uses a `PreToolUse` hook on `Write|Edit` operations to enforce the architecture approval gate. The prompt-based hook checks that the user has explicitly selected an architecture via `AskUserQuestion` before allowing implementation.
 
-If the prompt-based approach proves unreliable, NOTES.md documents an alternative state-file approach using `.claude/devflow-approved.tmp`.
+If the prompt-based approach proves unreliable, NOTES.md documents an alternative state-file approach using `claude-tmp/devflow-approved.tmp`.
 
 ## Workflow Phases
 
@@ -48,7 +48,7 @@ If the prompt-based approach proves unreliable, NOTES.md documents an alternativ
 2. Codebase Exploration - Launch 3 parallel `code-explorer` agents
 3. Clarifying Questions - Resolve ambiguities
 4. Architecture Design - Launch 3 `code-architect` agents, present options via `AskUserQuestion`
-5. Planning - Create implementation plan with task-level tracking (`.claude/devflow-plan.md`)
+5. Planning - Create implementation plan with task-level tracking (`claude-tmp/devflow-plan.md`)
 6. Implementation - Build following approved plan, update task progress
 7. Testing - Launch `test-analyzer` agent for proposals, then write tests directly (preserves context)
 8. Quality Review - Launch 3 parallel `code-reviewer` agents (+ optional `security-auditor`)

@@ -19,14 +19,14 @@ You are guiding the user through a systematic 9-phase feature development proces
 
 ## Workflow State Management
 
-This workflow uses a state file (`.claude/devflow-state.json`) to persist progress across conversation compaction and session interruptions.
+This workflow uses a state file (`claude-tmp/devflow-state.json`) to persist progress across conversation compaction and session interruptions.
 
 ### On Workflow Start
 
-**FIRST**, check if `.claude/devflow-state.json` exists:
+**FIRST**, check if `claude-tmp/devflow-state.json` exists:
 - **If file exists and `active: true`**: This is a RESUMED workflow
   - Read the state file to understand current progress
-  - **If `.claude/devflow-plan.md` exists**: Read the plan file
+  - **If `claude-tmp/devflow-plan.md` exists**: Read the plan file
     - Identify the current task from `currentTask` in state file
     - Count remaining unchecked tasks (lines matching `- [ ]`)
     - Display: "Current task: {currentTask}, {N} tasks remaining"
@@ -225,7 +225,7 @@ At the start, confirm the configuration:
    - Each criterion should be testable/verifiable
    - Assign IDs: `AC-NNN`
 
-4. **Write Plan File**: Create `.claude/devflow-plan.md` with this structure:
+4. **Write Plan File**: Create `claude-tmp/devflow-plan.md` with this structure:
    ```markdown
    # Feature Development Plan
 
@@ -290,7 +290,7 @@ At the start, confirm the configuration:
 
 **CRITICAL**: Do NOT proceed to Phase 6 until user explicitly approves the plan via `AskUserQuestion`.
 
-**Output**: `.claude/devflow-plan.md` file ready to guide implementation
+**Output**: `claude-tmp/devflow-plan.md` file ready to guide implementation
 
 ---
 
@@ -300,7 +300,7 @@ At the start, confirm the configuration:
 
 **Actions**:
 1. **Only begin after explicit user approval of plan in Phase 5**
-2. **Read the plan file** (`.claude/devflow-plan.md`) to get the task list
+2. **Read the plan file** (`claude-tmp/devflow-plan.md`) to get the task list
 3. For each task in the "Implementation Tasks" section:
    - Update state file with `currentTask: "TASK-NNN"`
    - Read existing similar code for patterns
@@ -462,8 +462,8 @@ If user chooses re-review, return to Step 1 with a focused scope.
 5. Suggest potential follow-up tasks
 6. Mark all todos as complete
 7. **Mark all acceptance criteria** in plan file as complete (or note incomplete ones)
-8. **Delete the state file** (`.claude/devflow-state.json`) to mark workflow as complete
-9. **Delete the plan file** (`.claude/devflow-plan.md`) to clean up
+8. **Delete the state file** (`claude-tmp/devflow-state.json`) to mark workflow as complete
+9. **Delete the plan file** (`claude-tmp/devflow-plan.md`) to clean up
 
 **Output**: Completion summary with next steps
 
