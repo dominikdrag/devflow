@@ -271,10 +271,9 @@ At the start, confirm the configuration:
    | [ISO] | Planning phase completed |
    ```
 
-5. **Present Plan Summary**: Display to the user:
-   - Total task count by category (Implementation, Testing, Quality)
-   - Files to be created/modified
-   - Acceptance criteria count
+5. **Present Full Plan**: Display the complete plan content to the user by reading and showing `claude-tmp/devflow-plan.md`
+
+**IMPORTANT**: Present the FULL plan to the user - do NOT summarize or condense. The user needs complete visibility into every task, its dependencies, and acceptance criteria to make an informed approval decision. This is a key decision point requiring maximum user control.
 
 6. **Plan Approval**: Use `AskUserQuestion` with options:
    - "Proceed with this plan"

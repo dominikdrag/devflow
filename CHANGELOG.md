@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.2] - 2026-01-06
+
+### Changed
+- Phase 5 (Planning) now presents the full plan to the user instead of a summary
+  - Consistent with Phase 4 and Phase 7 which already show full agent output
+  - Ensures maximum user visibility into tasks, dependencies, and acceptance criteria before approval
+
 ## [2.1.1] - 2026-01-06
 
 ### Changed
