@@ -221,6 +221,11 @@ At the start, confirm the configuration:
    - Establish task dependencies where needed
    - Assign task IDs: `TASK-NNN` for implementation, `TEST-NNN` for testing, `REVIEW-NNN` for quality
 
+   **Phase Scope Rules** (document explicitly in plan):
+   - **Phase 6 (Implementation)**: Works ONLY on `TASK-NNN` tasks
+   - **Phase 7 (Testing)**: Works ONLY on `TEST-NNN` tasks
+   - **Phase 8 (Review)**: Works ONLY on `REVIEW-NNN` tasks
+
 3. **Define Acceptance Criteria**: Extract or derive acceptance criteria from requirements
    - Each criterion should be testable/verifiable
    - Assign IDs: `AC-NNN`
@@ -245,6 +250,11 @@ At the start, confirm the configuration:
 
    ## Selected Architecture
    [Chosen architecture and rationale from Phase 4]
+
+   ## Phase Scope Rules
+   - **Phase 6 (Implementation)**: Works ONLY on `TASK-NNN` tasks
+   - **Phase 7 (Testing)**: Works ONLY on `TEST-NNN` tasks
+   - **Phase 8 (Review)**: Works ONLY on `REVIEW-NNN` tasks
 
    ## Implementation Tasks
    - [ ] **TASK-001**: [description]
@@ -297,6 +307,8 @@ At the start, confirm the configuration:
 
 **Goal**: Build the feature following the approved plan
 
+**Scope**: This phase works ONLY on `TASK-NNN` implementation tasks. Testing tasks (`TEST-NNN`) and review tasks (`REVIEW-NNN`) are handled in their respective phases.
+
 **Actions**:
 1. **Only begin after explicit user approval of plan in Phase 5**
 2. **Read the plan file** (`claude-tmp/devflow-plan.md`) to get the task list
@@ -329,56 +341,77 @@ At the start, confirm the configuration:
 
 **Goal**: Ensure comprehensive test coverage with user-approved strategy
 
-**Approach**: Use a `test-analyzer` agent to propose test cases, present the analysis to the user for approval, then write tests directly (not delegated) to preserve local context from implementation. Use `test-runner` agent to execute tests and report results.
+**Scope**: This phase works ONLY on `TEST-NNN` testing tasks. Implementation tasks (`TASK-NNN`) were completed in Phase 6. Review tasks (`REVIEW-NNN`) are handled in Phase 8.
+
+**Approach**: Launch test-analyzer agent(s) to propose test cases, analyze against existing TEST-NNN tasks in the plan, refine the testing tasks based on analyzer output, get user approval, update the plan, then write tests directly (not delegated) to preserve local context from implementation. Use `test-runner` agent to execute tests.
 
 **Actions**:
+
+### Step 1: Review Existing Testing Tasks
+1. Read `claude-tmp/devflow-plan.md` and extract all `TEST-NNN` tasks
+2. Note the current testing scope defined during planning
+
+### Step 2: Launch Test Analysis
 1. Launch {analyzers} `test-analyzer` agent(s) to analyze the implemented changes:
    - **If 1**: Single comprehensive test analysis
    - **If 2+**: Distribute across unit tests, integration tests, and edge cases
    - Each will identify test patterns, propose test cases, and note mocking requirements
-2. Present the test analysis to the user:
-   - Summarize the proposed test categories (unit, integration, edge cases)
-   - List key test cases with their purposes
-   - Highlight any mocking requirements or special setup needed
-   - Note the total number of tests proposed
-3. Use `AskUserQuestion` to get EXPLICIT confirmation:
-   - Option 1: "Proceed with proposed testing strategy"
-   - Option 2: "Modify testing scope" (user describes changes)
-   - Option 3: "Skip testing phase"
-4. If user selects "Modify testing scope":
-   - Wait for user to describe their modifications
-   - Incorporate feedback into test plan
-5. Write tests following the confirmed plan and project conventions:
+2. **Wait for ALL analyzer agents to complete**
+
+### Step 3: Compare and Reconcile
+1. Compare test-analyzer proposals against existing `TEST-NNN` tasks
+2. Identify:
+   - **Gaps**: Tests proposed by analyzer NOT covered in current TEST-NNN tasks
+   - **Redundancies**: TEST-NNN tasks that overlap with analyzer proposals
+   - **Refinements**: How analyzer proposals improve or expand existing tasks
+3. Prepare a reconciled testing strategy
+
+### Step 4: Present to User
+1. Present the FULL output from test-analyzer agent(s) - do NOT summarize
+2. Show comparison between original TEST-NNN tasks and analyzer proposals
+3. Present the recommended reconciled testing strategy:
+   - Which TEST-NNN tasks to keep as-is
+   - Which TEST-NNN tasks to modify (with specific changes)
+   - Which new TEST-NNN tasks to add
+   - Which TEST-NNN tasks to remove (if any)
+
+**IMPORTANT**: Present the FULL output from test-analyzer agent(s) to the user - do NOT summarize or condense the test proposals. The user needs complete visibility into each proposed test case, its rationale, edge cases identified, and mocking requirements to make an informed decision about the testing strategy.
+
+### Step 5: User Approval
+Use `AskUserQuestion` to get EXPLICIT confirmation:
+- Option 1: "Proceed with reconciled testing strategy"
+- Option 2: "Use original TEST-NNN tasks only"
+- Option 3: "Modify testing scope" (user describes changes)
+- Option 4: "Skip testing phase"
+
+### Step 6: Update Plan File
+If user approves reconciled strategy or modifications:
+1. Update `claude-tmp/devflow-plan.md`:
+   - Modify existing TEST-NNN task descriptions as agreed
+   - Add new TEST-NNN tasks (with sequential IDs continuing from highest existing)
+   - Remove any TEST-NNN tasks user agreed to drop
+2. Add progress log entry: `| [timestamp] | Testing tasks refined based on analyzer output |`
+
+### Step 7: Execute Testing Tasks
+For each TEST-NNN task in the updated plan:
+1. Update state file with `currentTask: "TEST-NNN"`
+2. Write tests following the task description and project conventions:
    - Happy path scenarios
    - Edge cases and boundary conditions
    - Error handling paths
    - Integration points with existing code
-6. **Execute tests using `test-runner` agent**:
-   - Pass the test files/patterns from the approved test plan
-   - Agent runs tests and returns structured results
-7. **Handle test results**:
-   - If all tests pass, proceed to Phase 8
-   - If tests fail:
-     - Review the failure report from `test-runner`
-     - Fix the failing tests (adjust test code or implementation as needed)
-     - Re-run `test-runner` until all pass
+3. Mark task complete: Change `- [ ]` to `- [x]`, add `Completed: [timestamp]`
+4. Add progress log entry: `| [timestamp] | TEST-NNN completed |`
 
-**CRITICAL**: Do NOT write tests until user has made an explicit selection via `AskUserQuestion`.
+### Step 8: Run Tests
+1. Launch `test-runner` agent to execute all new tests
+2. If tests fail:
+   - Review the failure report
+   - Fix the failing tests (adjust test code or implementation as needed)
+   - Re-run until all pass
+3. When all pass: Add `| [timestamp] | Testing phase completed |`
 
-**IMPORTANT**: Present the FULL output from test-analyzer agent(s) to the user - do NOT summarize or condense the test proposals. The user needs complete visibility into each proposed test case, its rationale, edge cases identified, and mocking requirements to make an informed decision about the testing strategy.
-
-**Why this approach**:
-- Analyzer agent provides structured, comprehensive test proposals
-- User approval ensures alignment with expectations before effort is spent
-- Writing tests directly preserves local context from implementation
-- Test-runner agent provides structured, parseable test results
-- Results in better test quality than delegating to an agent without context
-
-**Plan File Updates** (after each testing task):
-- Mark completed TEST-NNN tasks: Change `- [ ]` to `- [x]`, add `Completed: [timestamp]`
-- Update header: `Current Task: TEST-NNN`, `Last Updated: [timestamp]`
-- Add progress log entry: `| [timestamp] | TEST-NNN completed |`
-- When all tests pass, add: `| [timestamp] | Testing phase completed |`
+**CRITICAL**: Do NOT write tests until user has approved the testing strategy via `AskUserQuestion`.
 
 **Test Quality Standards**:
 - Test names clearly describe what is being tested
@@ -386,7 +419,7 @@ At the start, confirm the configuration:
 - Tests are independent (no shared state)
 - Follow existing project test patterns exactly
 
-**Output**: User-approved test suite with passing tests
+**Output**: User-approved test suite with passing tests, updated plan file with refined TEST-NNN tasks
 
 ---
 
@@ -394,9 +427,15 @@ At the start, confirm the configuration:
 
 **Goal**: Ensure code quality and correctness through user-reviewed findings
 
+**Scope**: This phase works ONLY on `REVIEW-NNN` quality review tasks. Implementation tasks (`TASK-NNN`) and testing tasks (`TEST-NNN`) were completed in previous phases.
+
 **Actions**:
 
-### Step 1: Launch Review Agents
+### Step 1: Review Existing Review Tasks
+1. Read `claude-tmp/devflow-plan.md` and extract all `REVIEW-NNN` tasks
+2. Note the current review scope defined during planning
+
+### Step 2: Launch Review Agents
 1. Launch {reviewers} `code-reviewer` agent(s) in parallel:
    - **If 1**: Comprehensive review covering all aspects
    - **If 2**: Split between (1) correctness/bugs and (2) conventions/maintainability
@@ -404,22 +443,38 @@ At the start, confirm the configuration:
 2. **Wait for ALL agents to complete** before proceeding
 3. **Optional**: If user requests security audit, also launch `security-auditor` agent and wait
 
-### Step 2: Present Full Agent Output
+### Step 3: Present Full Agent Output
 **IMPORTANT**: Present the FULL output from each review agent to the user - do NOT summarize or condense their findings. The user needs complete visibility into each reviewer's analysis, reasoning, and specific concerns to make informed decisions about which issues to address. This is a critical quality gate requiring maximum user control.
 
-### Step 3: Consolidate Findings
-1. Collect all findings from completed agents
-2. Deduplicate overlapping issues (same file + line + similar description)
-3. Organize by severity:
+### Step 4: Reconcile with Plan
+1. Compare code-reviewer findings against existing `REVIEW-NNN` tasks
+2. Map high-confidence issues (>=80) to actionable review tasks
+3. Propose updates to `REVIEW-NNN` tasks:
+   - Add specific issue-fixing tasks (e.g., "REVIEW-003: Fix null check in auth.ts:45")
+   - Refine generic review tasks with specific findings
+   - Note any REVIEW-NNN tasks that are no longer relevant
+4. Deduplicate overlapping issues (same file + line + similar description)
+5. Organize by severity:
    - **Critical Issues** (Confidence 90-100): Must be fixed
    - **Important Issues** (Confidence 80-89): Should be addressed
    - **Suggestions** (Confidence < 80): Nice to have improvements
 
-### Step 4: Present Findings to User
-Display consolidated findings in a clear format:
+### Step 5: Present Reconciled Review Tasks
+Display:
+1. Original REVIEW-NNN tasks from plan
+2. Proposed changes based on reviewer findings
+3. Consolidated findings summary:
 
 ```
 ## Review Findings Summary
+
+### Original REVIEW Tasks
+- REVIEW-001: [description] - [keep/modify/complete]
+- REVIEW-002: [description] - [keep/modify/complete]
+
+### Proposed New REVIEW Tasks (from reviewer findings)
+- REVIEW-003: [specific issue from findings]
+- REVIEW-004: [specific issue from findings]
 
 ### Critical Issues ({count})
 1. [FILE:LINE] Description - {confidence}%
@@ -434,32 +489,44 @@ Display consolidated findings in a clear format:
 2. ...
 ```
 
-### Step 5: User Selection
-Use `AskUserQuestion` with `multiSelect: true` to let user choose which issues to address:
+### Step 6: User Selection
+Use `AskUserQuestion` with `multiSelect: true` to let user choose which issues/tasks to address:
 - List each issue as a selectable option
 - Group by severity in the question
 - Include "Skip all - proceed to summary" as an option
 
-### Step 6: Apply Selected Fixes
-1. Apply fixes ONLY for issues the user selected
-2. Track which fixes were applied for the summary
+### Step 7: Update Plan File
+1. Update `claude-tmp/devflow-plan.md`:
+   - Add/modify REVIEW-NNN tasks based on user selection
+   - Each selected issue becomes a trackable task with sequential ID
+   - Mark any skipped original REVIEW-NNN tasks as complete (if user chose to skip)
+2. Add progress log entry: `| [timestamp] | Review tasks refined based on reviewer output |`
+3. Add progress log entry: `| [timestamp] | User selected {count} issues to fix |`
 
-### Step 7: Offer Re-review
+### Step 8: Execute Review Tasks
+For each selected REVIEW-NNN task in the updated plan:
+1. Update state file with `currentTask: "REVIEW-NNN"`
+2. Apply the fix
+3. Mark task complete: Change `- [ ]` to `- [x]`, add `Completed: [timestamp]`
+4. Add progress log entry: `| [timestamp] | REVIEW-NNN completed |`
+
+### Step 9: Offer Re-review
 If any fixes were applied, use `AskUserQuestion` to ask:
 - "Run review again to verify fixes?"
 - "Proceed to summary"
 
-If user chooses re-review, return to Step 1 with a focused scope.
+If user chooses re-review, return to Step 2 with a focused scope.
 
-**Plan File Updates**:
+**Plan File Updates Summary**:
 - At phase start: Add `| [timestamp] | Quality review initiated |` to progress log
-- After user selects fixes: Add `| [timestamp] | User selected {count} issues to fix |`
-- After applying fixes: Mark `REVIEW-NNN` tasks complete with `Completed: [timestamp]`
+- After reconciliation: Add `| [timestamp] | Review tasks refined based on reviewer output |`
+- After user selection: Add `| [timestamp] | User selected {count} issues to fix |`
+- After each fix: Mark `REVIEW-NNN` task complete with `Completed: [timestamp]}`, add progress log entry
 - After re-review (if done): Add `| [timestamp] | Re-review completed |`
 - At phase end: Add `| [timestamp] | Quality review phase completed |`
 - Update header: `Current Task`, `Last Updated`
 
-**Output**: Quality-verified implementation with user-approved fixes
+**Output**: Quality-verified implementation with updated plan file reflecting all review tasks
 
 ---
 

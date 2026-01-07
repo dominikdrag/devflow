@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.1.5] - 2026-01-07
+
+### Added
+- Explicit phase-task type scope rules documented in workflow and plan file
+  - Phase 6 (Implementation) works ONLY on `TASK-NNN` tasks
+  - Phase 7 (Testing) works ONLY on `TEST-NNN` tasks
+  - Phase 8 (Review) works ONLY on `REVIEW-NNN` tasks
+- Phase 7 now reconciles test-analyzer output with existing TEST-NNN tasks
+  - Compares analyzer proposals against planned testing tasks
+  - Identifies gaps, redundancies, and refinements
+  - Updates plan file with refined TEST-NNN tasks after user approval
+- Phase 8 now reconciles code-reviewer output with existing REVIEW-NNN tasks
+  - Maps high-confidence issues to actionable review tasks
+  - Updates plan file with specific issue-fixing tasks after user selection
+
+### Changed
+- Plan file template now includes "Phase Scope Rules" section
+- Phase 7 restructured into 8 steps with explicit task reconciliation workflow
+- Phase 8 restructured into 9 steps with explicit task reconciliation workflow
+
 ## [2.1.4] - 2026-01-07
 
 ### Changed
