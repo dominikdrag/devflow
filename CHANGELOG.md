@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.6] - 2026-01-08
+
+### Changed
+- Replaced PreToolUse Write|Edit hook with explicit gate verification in Phase 6
+  - Removed prompt-based hook that checked for architecture selection (unreliable)
+  - Added "Critical Gates" checklist to Phase 6 requiring verification of both architecture selection and plan approval before implementation
+
 ## [2.1.5] - 2026-01-07
 
 ### Added
