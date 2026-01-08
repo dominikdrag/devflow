@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.7] - 2026-01-08
+
+### Removed
+- PreToolUse hook for workflow file auto-approval
+  - Permission rules in settings now handle state file operations
+  - Simplifies hook configuration to only PreCompact
+
 ## [2.1.6] - 2026-01-08
 
 ### Changed
