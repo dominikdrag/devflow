@@ -1,6 +1,6 @@
 {
   "name": "devflow",
-  "version": "2.1.6",
+  "version": "2.1.7",
   "description": "9-phase feature development workflow with specialized agents for codebase exploration, architecture design, security auditing, and quality review.",
   "author": {
     "name": "Dominik Drag"
