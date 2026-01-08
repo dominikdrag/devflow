@@ -309,8 +309,14 @@ At the start, confirm the configuration:
 
 **Scope**: This phase works ONLY on `TASK-NNN` implementation tasks. Testing tasks (`TEST-NNN`) and review tasks (`REVIEW-NNN`) are handled in their respective phases.
 
+**CRITICAL GATES** (verify before ANY implementation):
+- [ ] Architecture selected via `AskUserQuestion` in Phase 4
+- [ ] Plan approved via `AskUserQuestion` in Phase 5
+
+If either gate is missing, STOP and complete the required phase first.
+
 **Actions**:
-1. **Only begin after explicit user approval of plan in Phase 5**
+1. **Verify both gates above are satisfied before writing any code**
 2. **Read the plan file** (`claude-tmp/devflow-plan.md`) to get the task list
 3. For each task in the "Implementation Tasks" section:
    - Update state file with `currentTask: "TASK-NNN"`

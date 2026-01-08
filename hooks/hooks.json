@@ -11,16 +11,6 @@
             "timeout": 15
           }
         ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Check if this is a devflow workflow. If /feature is active, look for evidence that the user explicitly selected an architecture option via AskUserQuestion response (e.g., 'Option A', 'Option B', 'Proceed with recommended', or confirmed a custom approach). If NO such selection is visible in the conversation, return: {\"decision\": \"deny\", \"reason\": \"Architecture selection required. Use AskUserQuestion to let user choose an architecture before implementing.\"}. If selection IS visible, return: {\"decision\": \"allow\"}",
-            "timeout": 30
-          }
-        ]
       }
     ],
     "PreCompact": [
