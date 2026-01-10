@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a Claude Code plugin that provides a 9-phase feature development workflow. It uses specialized agents for codebase exploration, architecture design, test analysis, security auditing, and code review.
+This is a Claude Code plugin that provides two development workflow commands:
+- `/feature` - 9-phase feature development workflow (implementation-first)
+- `/tdd` - 9-phase TDD workflow with Red-Green-Refactor cycles (test-first)
+
+Both use specialized agents for codebase exploration, architecture design, test planning, security auditing, and code review.
 
 ## Plugin Structure
 
@@ -15,9 +19,13 @@ devflow/
 │   ├── code-explorer.md          # Sonnet - traces execution paths, maps architecture
 │   ├── code-architect.md         # Opus - designs feature architectures
 │   ├── code-reviewer.md          # Opus - reviews for bugs and convention adherence
-│   ├── test-analyzer.md          # Sonnet - analyzes code, proposes test cases
+│   ├── test-analyzer.md          # Opus - analyzes code, proposes test cases
+│   ├── test-runner.md            # Haiku - executes tests and reports results
+│   ├── tdd-test-planner.md       # Opus - designs tests from requirements (TDD)
 │   └── security-auditor.md       # Sonnet - OWASP Top 10 checks (optional)
-├── commands/feature.md           # Main workflow command definition
+├── commands/
+│   ├── feature.md                # Standard workflow command
+│   └── tdd.md                    # TDD workflow command
 └── hooks/hooks.json              # Workflow enforcement hooks
 ```
 
@@ -38,11 +46,11 @@ color: yellow|green|red           # Status line color
 
 ## Hook System
 
-The plugin uses a `PreToolUse` hook on `Write|Edit` operations to enforce the architecture approval gate. The prompt-based hook checks that the user has explicitly selected an architecture via `AskUserQuestion` before allowing implementation.
-
-If the prompt-based approach proves unreliable, NOTES.md documents an alternative state-file approach using `claude-tmp/devflow-approved.tmp`.
+The plugin uses a `PreCompact` hook to persist workflow state before conversation compaction. The hook saves state to the appropriate state file (`devflow-state.json` for `/feature`, `tdd-state.json` for `/tdd`) enabling workflow resumption.
 
 ## Workflow Phases
+
+### /feature Workflow (Implementation-First)
 
 1. Discovery - Understand requirements
 2. Codebase Exploration - Launch 3 parallel `code-explorer` agents
@@ -54,13 +62,32 @@ If the prompt-based approach proves unreliable, NOTES.md documents an alternativ
 8. Quality Review - Launch 3 parallel `code-reviewer` agents (+ optional `security-auditor`)
 9. Summary - Document completion, clean up state and plan files
 
+### /tdd Workflow (Test-First)
+
+1. Discovery - Understand requirements
+2. Codebase Exploration - Launch 3 parallel `code-explorer` agents
+3. Clarifying Questions - Resolve ambiguities
+4. **Test Planning** - Launch `tdd-test-planner` agent to design tests from requirements
+5. Architecture Design - Launch 3 `code-architect` agents, design code to pass planned tests
+6. Planning - Create TDD task list with Red/Green/Refactor substeps (`claude-tmp/tdd-plan.md`)
+7. **TDD Implementation** - Per-task Red-Green-Refactor cycles:
+   - RED: Write failing test, verify it fails
+   - GREEN: Write minimal code to pass (max 3 retries)
+   - REFACTOR: Optional cleanup while keeping tests green
+8. Quality Review - Launch 3 parallel `code-reviewer` agents (end of workflow)
+9. Summary - Document completion, report test coverage
+
+**Key Difference**: In TDD, tests are designed BEFORE architecture (Phase 4 before Phase 5), and implementation is interleaved with testing per-task.
+
 ## Key Design Decisions
 
-- Opus models used for architecture and code review (higher reasoning quality)
-- Sonnet used for exploration, test analysis, and security auditing (cost efficiency for analysis tasks)
+- Opus models used for architecture, code review, and test planning (higher reasoning quality)
+- Sonnet used for exploration and security auditing (cost efficiency for analysis tasks)
+- Haiku used for test execution (fast, simple task)
 - Tests written directly (not by subagent) to preserve implementation context
 - Confidence thresholds: code-reviewer >= 80/100, security-auditor >= 85/100
 - Architecture selection is a hard gate - implementation blocked until user explicitly chooses
+- TDD workflow uses separate state files (`tdd-state.json`, `tdd-plan.md`) from feature workflow
 
 ## Commit Convention
 
