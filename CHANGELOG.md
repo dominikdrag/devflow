@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.2.0] - 2026-01-11
+
+### Added
+- **`/tdd` command** - New 9-phase Test-Driven Development workflow with Red-Green-Refactor cycles
+  - Test-first approach: tests are designed BEFORE architecture (Phase 4 before Phase 5)
+  - `tdd-test-planner` agent (Opus) designs tests from requirements before code exists
+  - Per-task Red-Green-Refactor implementation cycles:
+    - **RED**: Write failing test, verify it fails
+    - **GREEN**: Write minimal code to pass (max 3 retries)
+    - **REFACTOR**: Optional cleanup while keeping tests green
+  - Separate state files (`tdd-state.json`, `tdd-plan.md`) from `/feature` workflow
+  - TDD-specific task structure with `TDD-NNN` tasks and substeps (`TDD-NNN-RED`, `TDD-NNN-GREEN`, `TDD-NNN-REFACTOR`)
+  - Configurable agent counts: `--explorers`, `--planners`, `--architects`, `--reviewers`
+
 ## [2.1.8] - 2026-01-09
 
 ### Changed
