@@ -31,10 +31,28 @@ This workflow uses a state file (`claude-tmp/devflow-feature-state.json`) to per
     - Count remaining unchecked tasks (lines matching `- [ ]`)
     - Display: "Current task: {currentTask}, {N} tasks remaining"
   - Inform the user: "Resuming devflow workflow from Phase {currentPhase}"
-  - Display completed phases and key decisions from the state
+  - Display historical context from `phaseHistory`:
+    - For each completed phase, show phase name and key outputs
+    - Phase 2: Show key files and patterns discovered
+    - Phase 3: Show clarifications made
+    - Phase 4: Show selected architecture and rationale
   - Continue from the current phase (do NOT restart from Phase 1)
 - **If file does not exist**: This is a NEW workflow
-  - Create initial state file with `active: true, currentPhase: 1, completedPhases: []`
+  - Create initial state file:
+    ```json
+    {
+      "active": true,
+      "workflowType": "feature",
+      "featureDescription": "[from user input]",
+      "startedAt": "[current ISO timestamp]",
+      "lastUpdatedAt": "[current ISO timestamp]",
+      "currentPhase": 1,
+      "currentTask": null,
+      "phaseHistory": [],
+      "decisions": {"architecture": null, "testStrategy": null},
+      "summary": "Starting feature development workflow"
+    }
+    ```
   - Proceed with Phase 1
 
 ### State File Format
@@ -42,10 +60,25 @@ This workflow uses a state file (`claude-tmp/devflow-feature-state.json`) to per
 ```json
 {
   "active": true,
-  "currentPhase": 1,
-  "completedPhases": [],
+  "workflowType": "feature",
   "featureDescription": "...",
+  "startedAt": "ISO timestamp",
+  "lastUpdatedAt": "ISO timestamp",
+  "currentPhase": 1,
   "currentTask": null,
+  "phaseHistory": [
+    {
+      "phase": 1,
+      "name": "Discovery",
+      "status": "completed",
+      "startedAt": "ISO timestamp",
+      "completedAt": "ISO timestamp",
+      "outputs": {
+        "requirements": ["requirement 1", "requirement 2"],
+        "constraints": ["constraint 1"]
+      }
+    }
+  ],
   "decisions": {
     "architecture": null,
     "testStrategy": null
@@ -54,15 +87,33 @@ This workflow uses a state file (`claude-tmp/devflow-feature-state.json`) to per
 }
 ```
 
+### Phase-Specific Outputs
+
+Each phase stores structured outputs in `phaseHistory[].outputs`:
+
+| Phase | Name | Outputs |
+|-------|------|---------|
+| 1 | Discovery | `requirements[]`, `constraints[]` |
+| 2 | Codebase Exploration | `agentCount`, `keyFiles[]`, `patterns[]`, `integrationPoints[]` |
+| 3 | Clarifying Questions | `clarifications[]` (array of `{question, answer}`) |
+| 4 | Architecture Design | `agentCount`, `optionsPresented[]`, `selectedArchitecture`, `selectionRationale` |
+| 5 | Planning | `taskCount`, `testCount`, `reviewCount`, `planFile` |
+| 6 | Implementation | `tasksCompleted[]`, `tasksRemaining[]`, `filesModified[]` |
+| 7 | Testing | `testsWritten[]`, `testsPassing` |
+| 8 | Quality Review | `issuesFound`, `issuesFixed[]`, `issuesSkipped[]` |
+| 9 | Summary | `filesCreated[]`, `filesModified[]`, `testCoverage` |
+
 ### Updating State
 
 At the START of each phase, update the state file:
 - Set `currentPhase` to the new phase number
+- Set `lastUpdatedAt` to current ISO timestamp
+- Add new entry to `phaseHistory[]` with `status: "in_progress"`, `startedAt`, and empty `outputs`
 - Update `summary` with relevant context
 
 At the END of each phase, update the state file:
-- Add the phase number to `completedPhases`
-- Store any decisions made (architecture selection, test strategy approval)
+- Update the phase's `phaseHistory` entry: set `status: "completed"`, `completedAt`, and populate `outputs`
+- Store any decisions made (architecture selection, test strategy approval) in `decisions`
 
 ---
 
@@ -217,20 +268,24 @@ At the start, confirm the configuration:
 
 2. **Define Implementation Tasks**: Break down the work into discrete, actionable tasks:
    - Create tasks for each file to be created/modified
-   - Group tasks by phase (Implementation, Testing, Quality)
+   - Group tasks by phase (Implementation, Quality)
    - Establish task dependencies where needed
-   - Assign task IDs: `TASK-NNN` for implementation, `TEST-NNN` for testing, `REVIEW-NNN` for quality
+   - Assign task IDs: `TASK-NNN` for implementation, `REVIEW-NNN` for quality
+   - **Note**: `TEST-NNN` tasks are created dynamically in Phase 7 by the test-analyzer
 
    **Phase Scope Rules** (document explicitly in plan):
    - **Phase 6 (Implementation)**: Works ONLY on `TASK-NNN` tasks
-   - **Phase 7 (Testing)**: Works ONLY on `TEST-NNN` tasks
+   - **Phase 7 (Testing)**: Creates `TEST-NNN` tasks from test-analyzer output, then executes them
    - **Phase 8 (Review)**: Works ONLY on `REVIEW-NNN` tasks
 
 3. **Define Acceptance Criteria**: Extract or derive acceptance criteria from requirements
    - Each criterion should be testable/verifiable
    - Assign IDs: `AC-NNN`
 
-4. **Write Plan File**: Create `claude-tmp/devflow-plan.md` with this structure:
+4. **Write Plan File**: Create `claude-tmp/devflow-plan.md` with this structure.
+
+   **IMPORTANT**: Include FULL details from phases 1-4, not summaries. The plan file should be a complete reference that enables resumption without needing the state file.
+
    ```markdown
    # Feature Development Plan
 
@@ -239,21 +294,66 @@ At the start, confirm the configuration:
    > **Created**: [ISO timestamp]
    > **Last Updated**: [ISO timestamp]
 
-   ## Feature Overview
-   [Summary from Phase 1]
+   ## Phase 1: Discovery
 
-   ## Codebase Context
-   [Key patterns and integration points from Phase 2]
+   ### Requirements
+   - [Full list of ALL requirements identified]
 
-   ## Clarifications
-   [Key decisions from Phase 3]
+   ### Constraints
+   - [Full list of ALL constraints identified]
 
-   ## Selected Architecture
-   [Chosen architecture and rationale from Phase 4]
+   ### Initial Understanding
+   [Complete statement of what will be built - the full output from Phase 1]
+
+   ## Phase 2: Codebase Exploration
+
+   ### Key Files
+   - `path/to/file.ts` - [why it's relevant, what patterns it contains]
+   - `path/to/file2.ts` - [why it's relevant, what patterns it contains]
+
+   ### Patterns Discovered
+   - [Pattern 1]: [full description and where/how it's used]
+   - [Pattern 2]: [full description and where/how it's used]
+
+   ### Integration Points
+   - [Integration point 1]: [files involved, how to integrate, any considerations]
+   - [Integration point 2]: [files involved, how to integrate, any considerations]
+
+   ### Agent Findings Summary
+   [Full synthesis of what exploration agents discovered - preserve all relevant details]
+
+   ## Phase 3: Clarifications
+
+   ### Questions & Answers
+   | Question | Answer |
+   |----------|--------|
+   | [Question 1] | [User's complete answer] |
+   | [Question 2] | [User's complete answer] |
+
+   ### Resolved Ambiguities
+   [List of all ambiguities that were resolved through Q&A, with the resolution]
+
+   ## Phase 4: Architecture Design
+
+   ### Options Considered
+   [Full description of ALL architecture options that were presented to the user]
+
+   ### Selected Architecture
+   **Choice**: [Selected option name]
+
+   **Rationale**: [Complete rationale for why this was chosen]
+
+   **Key Decisions**:
+   - [Decision 1 with full context]
+   - [Decision 2 with full context]
+
+   **Files to Create/Modify**:
+   - `path/to/new/file.ts` - [purpose and what it will contain]
+   - `path/to/existing/file.ts` - [what specific changes will be made]
 
    ## Phase Scope Rules
    - **Phase 6 (Implementation)**: Works ONLY on `TASK-NNN` tasks
-   - **Phase 7 (Testing)**: Works ONLY on `TEST-NNN` tasks
+   - **Phase 7 (Testing)**: Creates `TEST-NNN` tasks from test-analyzer, then executes them
    - **Phase 8 (Review)**: Works ONLY on `REVIEW-NNN` tasks
 
    ## Implementation Tasks
@@ -263,9 +363,6 @@ At the start, confirm the configuration:
    - [ ] **TASK-002**: [description]
      - Files: `path/to/file.ts`
      - Depends on: TASK-001
-
-   ## Testing Tasks
-   - [ ] **TEST-001**: [description]
 
    ## Quality Tasks
    - [ ] **REVIEW-001**: Run code reviewers
@@ -347,58 +444,46 @@ If either gate is missing, STOP and complete the required phase first.
 
 **Goal**: Ensure comprehensive test coverage with user-approved strategy
 
-**Scope**: This phase works ONLY on `TEST-NNN` testing tasks. Implementation tasks (`TASK-NNN`) were completed in Phase 6. Review tasks (`REVIEW-NNN`) are handled in Phase 8.
+**Scope**: This phase creates and executes `TEST-NNN` testing tasks. Implementation tasks (`TASK-NNN`) were completed in Phase 6. Review tasks (`REVIEW-NNN`) are handled in Phase 8.
 
-**Approach**: Launch test-analyzer agent(s) to propose test cases, analyze against existing TEST-NNN tasks in the plan, refine the testing tasks based on analyzer output, get user approval, update the plan, then write tests directly (not delegated) to preserve local context from implementation. Use `test-runner` agent to execute tests.
+**Approach**: Launch test-analyzer agent(s) to propose test cases based on the implemented code. Present proposals to user for approval. **Once user approves the testing strategy, add `TEST-NNN` tasks to `claude-tmp/devflow-plan.md`** (this is when testing tasks are created - NOT during Phase 5 planning). Then write tests directly (not delegated) to preserve local context from implementation. Use `test-runner` agent to execute tests.
 
 **Actions**:
 
-### Step 1: Review Existing Testing Tasks
-1. Read `claude-tmp/devflow-plan.md` and extract all `TEST-NNN` tasks
-2. Note the current testing scope defined during planning
-
-### Step 2: Launch Test Analysis
+### Step 1: Launch Test Analysis
 1. Launch {analyzers} `test-analyzer` agent(s) to analyze the implemented changes:
    - **If 1**: Single comprehensive test analysis
    - **If 2+**: Distribute across unit tests, integration tests, and edge cases
    - Each will identify test patterns, propose test cases, and note mocking requirements
 2. **Wait for ALL analyzer agents to complete**
 
-### Step 3: Compare and Reconcile
-1. Compare test-analyzer proposals against existing `TEST-NNN` tasks
-2. Identify:
-   - **Gaps**: Tests proposed by analyzer NOT covered in current TEST-NNN tasks
-   - **Redundancies**: TEST-NNN tasks that overlap with analyzer proposals
-   - **Refinements**: How analyzer proposals improve or expand existing tasks
-3. Prepare a reconciled testing strategy
-
-### Step 4: Present to User
+### Step 2: Present to User
 1. Present the FULL output from test-analyzer agent(s) - do NOT summarize
-2. Show comparison between original TEST-NNN tasks and analyzer proposals
-3. Present the recommended reconciled testing strategy:
-   - Which TEST-NNN tasks to keep as-is
-   - Which TEST-NNN tasks to modify (with specific changes)
-   - Which new TEST-NNN tasks to add
-   - Which TEST-NNN tasks to remove (if any)
+2. Present the proposed testing strategy:
+   - Test cases organized by type (unit, integration, edge cases)
+   - Mocking requirements identified
+   - Coverage expectations
 
 **IMPORTANT**: Present the FULL output from test-analyzer agent(s) to the user - do NOT summarize or condense the test proposals. The user needs complete visibility into each proposed test case, its rationale, edge cases identified, and mocking requirements to make an informed decision about the testing strategy.
 
-### Step 5: User Approval
+### Step 3: User Approval
 Use `AskUserQuestion` to get EXPLICIT confirmation:
-- Option 1: "Proceed with reconciled testing strategy"
-- Option 2: "Use original TEST-NNN tasks only"
-- Option 3: "Modify testing scope" (user describes changes)
-- Option 4: "Skip testing phase"
+- Option 1: "Proceed with proposed testing strategy"
+- Option 2: "Modify testing scope" (user describes changes)
+- Option 3: "Skip testing phase"
 
-### Step 6: Update Plan File
-If user approves reconciled strategy or modifications:
+### Step 4: Create TEST Tasks in Plan File
+
+**IMPORTANT**: This is when `TEST-NNN` tasks are created and added to the plan file - NOT during Phase 5 planning. This ensures test proposals are based on actual implementation context.
+
+If user approves the testing strategy:
 1. Update `claude-tmp/devflow-plan.md`:
-   - Modify existing TEST-NNN task descriptions as agreed
-   - Add new TEST-NNN tasks (with sequential IDs continuing from highest existing)
-   - Remove any TEST-NNN tasks user agreed to drop
-2. Add progress log entry: `| [timestamp] | Testing tasks refined based on analyzer output |`
+   - Add "## Testing Tasks" section after Implementation Tasks (and before Quality Tasks)
+   - Create `TEST-NNN` tasks based on approved test proposals (starting from TEST-001)
+   - Each task should specify: test file path, what behavior is tested, edge cases covered
+2. Add progress log entry: `| [timestamp] | Testing tasks created from test-analyzer output |`
 
-### Step 7: Execute Testing Tasks
+### Step 5: Execute Testing Tasks
 For each TEST-NNN task in the updated plan:
 1. Update state file with `currentTask: "TEST-NNN"`
 2. Write tests following the task description and project conventions:
@@ -409,7 +494,7 @@ For each TEST-NNN task in the updated plan:
 3. Mark task complete: Change `- [ ]` to `- [x]`, add `Completed: [timestamp]`
 4. Add progress log entry: `| [timestamp] | TEST-NNN completed |`
 
-### Step 8: Run Tests
+### Step 6: Run Tests
 1. Launch `test-runner` agent to execute all new tests
 2. If tests fail:
    - Review the failure report

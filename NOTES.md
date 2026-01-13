@@ -36,23 +36,91 @@ A PreToolUse hook automatically approves Write/Edit/Bash operations on the state
 
 ### State File Schema
 
+The state file includes full historical context via `phaseHistory`:
+
 ```json
 {
   "active": true,
-  "currentPhase": 1,
-  "completedPhases": [1, 2],
+  "workflowType": "feature",
   "featureDescription": "Add user authentication",
+  "startedAt": "2026-01-13T10:30:00Z",
+  "lastUpdatedAt": "2026-01-13T11:45:00Z",
+  "currentPhase": 4,
+  "currentTask": null,
+  "phaseHistory": [
+    {
+      "phase": 1,
+      "name": "Discovery",
+      "status": "completed",
+      "startedAt": "2026-01-13T10:30:00Z",
+      "completedAt": "2026-01-13T10:35:00Z",
+      "outputs": {
+        "requirements": ["OAuth login", "session management"],
+        "constraints": ["Must use existing middleware"]
+      }
+    },
+    {
+      "phase": 2,
+      "name": "Codebase Exploration",
+      "status": "completed",
+      "startedAt": "2026-01-13T10:35:00Z",
+      "completedAt": "2026-01-13T10:50:00Z",
+      "outputs": {
+        "agentCount": 3,
+        "keyFiles": ["src/auth/middleware.ts"],
+        "patterns": ["Express middleware"],
+        "integrationPoints": ["src/app.ts"]
+      }
+    },
+    {
+      "phase": 3,
+      "name": "Clarifying Questions",
+      "status": "completed",
+      "startedAt": "2026-01-13T10:50:00Z",
+      "completedAt": "2026-01-13T11:00:00Z",
+      "outputs": {
+        "clarifications": [
+          {"question": "Which OAuth providers?", "answer": "Google and GitHub"}
+        ]
+      }
+    },
+    {
+      "phase": 4,
+      "name": "Architecture Design",
+      "status": "in_progress",
+      "startedAt": "2026-01-13T11:00:00Z",
+      "completedAt": null,
+      "outputs": {}
+    }
+  ],
   "decisions": {
-    "architecture": "Option A: JWT-based auth",
-    "testStrategy": "Proceed with proposed testing"
+    "architecture": null,
+    "testStrategy": null
   },
-  "summary": "Completed exploration and clarifying questions. Ready for architecture design."
+  "summary": "Exploring architecture options for OAuth integration."
 }
 ```
+
+### Phase-Specific Outputs
+
+| Phase | Outputs |
+|-------|---------|
+| 1 Discovery | `requirements[]`, `constraints[]` |
+| 2 Exploration | `agentCount`, `keyFiles[]`, `patterns[]`, `integrationPoints[]` |
+| 3 Clarifications | `clarifications[]` (question/answer pairs) |
+| 4 Architecture | `agentCount`, `optionsPresented[]`, `selectedArchitecture`, `selectionRationale` |
+| 5 Planning | `taskCount`, `testCount`, `reviewCount`, `planFile` |
+| 6 Implementation | `tasksCompleted[]`, `tasksRemaining[]`, `filesModified[]` |
+| 7 Testing | `testsWritten[]`, `testsPassing` |
+| 8 Review | `issuesFound`, `issuesFixed[]`, `issuesSkipped[]` |
+| 9 Summary | `filesCreated[]`, `filesModified[]`, `testCoverage` |
 
 ### Recovery Behavior
 
 When resuming:
 1. User informed which phase is being resumed
-2. Completed phases and key decisions are displayed
+2. Historical context from `phaseHistory` is displayed:
+   - Key files and patterns from exploration
+   - Clarifications made
+   - Architecture selection and rationale
 3. Workflow continues from current phase (no restart)

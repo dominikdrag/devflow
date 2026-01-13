@@ -31,10 +31,29 @@ This workflow uses a state file (`claude-tmp/devflow-tdd-state.json`) to persist
     - Count remaining unchecked tasks (lines matching `- [ ]`)
     - Display: "Current task: {currentTask.id} ({currentTask.substep}), {N} tasks remaining"
   - Inform the user: "Resuming TDD workflow from Phase {currentPhase}"
-  - Display completed phases and key decisions from the state
+  - Display historical context from `phaseHistory`:
+    - For each completed phase, show phase name and key outputs
+    - Phase 2: Show key files and patterns discovered
+    - Phase 3: Show clarifications made
+    - Phase 4: Show test cases planned
+    - Phase 5: Show selected architecture and rationale
   - Continue from the current phase (do NOT restart from Phase 1)
 - **If file does not exist**: This is a NEW workflow
-  - Create initial state file with `active: true, currentPhase: 1, completedPhases: []`
+  - Create initial state file:
+    ```json
+    {
+      "active": true,
+      "workflowType": "tdd",
+      "featureDescription": "[from user input]",
+      "startedAt": "[current ISO timestamp]",
+      "lastUpdatedAt": "[current ISO timestamp]",
+      "currentPhase": 1,
+      "currentTask": null,
+      "phaseHistory": [],
+      "decisions": {"testPlan": null, "architecture": null},
+      "summary": "Starting TDD development workflow"
+    }
+    ```
   - Proceed with Phase 1
 
 ### State File Format
@@ -42,17 +61,31 @@ This workflow uses a state file (`claude-tmp/devflow-tdd-state.json`) to persist
 ```json
 {
   "active": true,
-  "currentPhase": 1,
-  "completedPhases": [],
+  "workflowType": "tdd",
   "featureDescription": "...",
+  "startedAt": "ISO timestamp",
+  "lastUpdatedAt": "ISO timestamp",
+  "currentPhase": 1,
   "currentTask": {
     "id": "TDD-001",
     "substep": "red|green|refactor",
     "attempts": 0,
     "errors": []
   },
-  "completedTasks": [],
-  "blockedTasks": [],
+  "phaseHistory": [
+    {
+      "phase": 4,
+      "name": "Test Planning",
+      "status": "completed",
+      "startedAt": "ISO timestamp",
+      "completedAt": "ISO timestamp",
+      "outputs": {
+        "agentCount": 1,
+        "testCases": ["test case 1", "test case 2"],
+        "testPlanApproved": true
+      }
+    }
+  ],
   "decisions": {
     "testPlan": null,
     "architecture": null
@@ -61,15 +94,33 @@ This workflow uses a state file (`claude-tmp/devflow-tdd-state.json`) to persist
 }
 ```
 
+### Phase-Specific Outputs
+
+Each phase stores structured outputs in `phaseHistory[].outputs`:
+
+| Phase | Name | Outputs |
+|-------|------|---------|
+| 1 | Discovery | `requirements[]`, `constraints[]` |
+| 2 | Codebase Exploration | `agentCount`, `keyFiles[]`, `patterns[]`, `integrationPoints[]` |
+| 3 | Clarifying Questions | `clarifications[]` (array of `{question, answer}`) |
+| 4 | Test Planning | `agentCount`, `testCases[]`, `testPlanApproved` |
+| 5 | Architecture Design | `agentCount`, `optionsPresented[]`, `selectedArchitecture`, `selectionRationale` |
+| 6 | Planning | `tddTaskCount`, `planFile` |
+| 7 | TDD Implementation | `completedTasks[]`, `blockedTasks[]`, `skippedRefactors[]` |
+| 8 | Quality Review | `issuesFound`, `issuesFixed[]`, `issuesSkipped[]` |
+| 9 | Summary | `filesCreated[]`, `filesModified[]`, `testCoverage` |
+
 ### Updating State
 
 At the START of each phase, update the state file:
 - Set `currentPhase` to the new phase number
+- Set `lastUpdatedAt` to current ISO timestamp
+- Add new entry to `phaseHistory[]` with `status: "in_progress"`, `startedAt`, and empty `outputs`
 - Update `summary` with relevant context
 
 At the END of each phase, update the state file:
-- Add the phase number to `completedPhases`
-- Store any decisions made (test plan approval, architecture selection)
+- Update the phase's `phaseHistory` entry: set `status: "completed"`, `completedAt`, and populate `outputs`
+- Store any decisions made (test plan approval, architecture selection) in `decisions`
 
 ---
 
@@ -266,7 +317,10 @@ This is the core TDD differentiator - tests are designed from requirements, not 
    - Each criterion should be testable/verifiable
    - Assign IDs: `AC-NNN`
 
-4. **Write Plan File**: Create `claude-tmp/tdd-plan.md` with this structure:
+4. **Write Plan File**: Create `claude-tmp/tdd-plan.md` with this structure.
+
+   **IMPORTANT**: Include FULL details from phases 1-5, not summaries. The plan file should be a complete reference that enables resumption without needing the state file.
+
    ```markdown
    # TDD Development Plan
 
@@ -277,20 +331,73 @@ This is the core TDD differentiator - tests are designed from requirements, not 
    > **Created**: [ISO timestamp]
    > **Last Updated**: [ISO timestamp]
 
-   ## Feature Overview
-   [Summary from Phase 1]
+   ## Phase 1: Discovery
 
-   ## Codebase Context
-   [Key patterns and integration points from Phase 2]
+   ### Requirements
+   - [Full list of ALL requirements identified]
 
-   ## Clarifications
-   [Key decisions from Phase 3]
+   ### Constraints
+   - [Full list of ALL constraints identified]
 
-   ## Approved Test Plan
-   [Test specifications from Phase 4]
+   ### Initial Understanding
+   [Complete statement of what will be built - the full output from Phase 1]
 
-   ## Selected Architecture
-   [Chosen architecture and rationale from Phase 5]
+   ## Phase 2: Codebase Exploration
+
+   ### Key Files
+   - `path/to/file.ts` - [why it's relevant, what patterns it contains]
+   - `path/to/file2.ts` - [why it's relevant, what patterns it contains]
+
+   ### Patterns Discovered
+   - [Pattern 1]: [full description and where/how it's used]
+   - [Pattern 2]: [full description and where/how it's used]
+
+   ### Integration Points
+   - [Integration point 1]: [files involved, how to integrate, any considerations]
+   - [Integration point 2]: [files involved, how to integrate, any considerations]
+
+   ### Agent Findings Summary
+   [Full synthesis of what exploration agents discovered - preserve all relevant details]
+
+   ## Phase 3: Clarifications
+
+   ### Questions & Answers
+   | Question | Answer |
+   |----------|--------|
+   | [Question 1] | [User's complete answer] |
+   | [Question 2] | [User's complete answer] |
+
+   ### Resolved Ambiguities
+   [List of all ambiguities that were resolved through Q&A, with the resolution]
+
+   ## Phase 4: Test Planning
+
+   ### Test Cases
+   [Full list of ALL test cases designed by tdd-test-planner agent(s)]
+
+   ### Test Strategy
+   [Complete test strategy - what types of tests, coverage goals, mocking approach]
+
+   ### Edge Cases Identified
+   [All edge cases that tests should cover]
+
+   ## Phase 5: Architecture Design
+
+   ### Options Considered
+   [Full description of ALL architecture options that were presented to the user]
+
+   ### Selected Architecture
+   **Choice**: [Selected option name]
+
+   **Rationale**: [Complete rationale for why this was chosen]
+
+   **Key Decisions**:
+   - [Decision 1 with full context]
+   - [Decision 2 with full context]
+
+   **Files to Create/Modify**:
+   - `path/to/new/file.ts` - [purpose and what it will contain]
+   - `path/to/existing/file.ts` - [what specific changes will be made]
 
    ## TDD Tasks
 
