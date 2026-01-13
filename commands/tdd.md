@@ -317,7 +317,10 @@ This is the core TDD differentiator - tests are designed from requirements, not 
    - Each criterion should be testable/verifiable
    - Assign IDs: `AC-NNN`
 
-4. **Write Plan File**: Create `claude-tmp/tdd-plan.md` with this structure:
+4. **Write Plan File**: Create `claude-tmp/tdd-plan.md` with this structure.
+
+   **IMPORTANT**: Include FULL details from phases 1-5, not summaries. The plan file should be a complete reference that enables resumption without needing the state file.
+
    ```markdown
    # TDD Development Plan
 
@@ -328,20 +331,73 @@ This is the core TDD differentiator - tests are designed from requirements, not 
    > **Created**: [ISO timestamp]
    > **Last Updated**: [ISO timestamp]
 
-   ## Feature Overview
-   [Summary from Phase 1]
+   ## Phase 1: Discovery
 
-   ## Codebase Context
-   [Key patterns and integration points from Phase 2]
+   ### Requirements
+   - [Full list of ALL requirements identified]
 
-   ## Clarifications
-   [Key decisions from Phase 3]
+   ### Constraints
+   - [Full list of ALL constraints identified]
 
-   ## Approved Test Plan
-   [Test specifications from Phase 4]
+   ### Initial Understanding
+   [Complete statement of what will be built - the full output from Phase 1]
 
-   ## Selected Architecture
-   [Chosen architecture and rationale from Phase 5]
+   ## Phase 2: Codebase Exploration
+
+   ### Key Files
+   - `path/to/file.ts` - [why it's relevant, what patterns it contains]
+   - `path/to/file2.ts` - [why it's relevant, what patterns it contains]
+
+   ### Patterns Discovered
+   - [Pattern 1]: [full description and where/how it's used]
+   - [Pattern 2]: [full description and where/how it's used]
+
+   ### Integration Points
+   - [Integration point 1]: [files involved, how to integrate, any considerations]
+   - [Integration point 2]: [files involved, how to integrate, any considerations]
+
+   ### Agent Findings Summary
+   [Full synthesis of what exploration agents discovered - preserve all relevant details]
+
+   ## Phase 3: Clarifications
+
+   ### Questions & Answers
+   | Question | Answer |
+   |----------|--------|
+   | [Question 1] | [User's complete answer] |
+   | [Question 2] | [User's complete answer] |
+
+   ### Resolved Ambiguities
+   [List of all ambiguities that were resolved through Q&A, with the resolution]
+
+   ## Phase 4: Test Planning
+
+   ### Test Cases
+   [Full list of ALL test cases designed by tdd-test-planner agent(s)]
+
+   ### Test Strategy
+   [Complete test strategy - what types of tests, coverage goals, mocking approach]
+
+   ### Edge Cases Identified
+   [All edge cases that tests should cover]
+
+   ## Phase 5: Architecture Design
+
+   ### Options Considered
+   [Full description of ALL architecture options that were presented to the user]
+
+   ### Selected Architecture
+   **Choice**: [Selected option name]
+
+   **Rationale**: [Complete rationale for why this was chosen]
+
+   **Key Decisions**:
+   - [Decision 1 with full context]
+   - [Decision 2 with full context]
+
+   **Files to Create/Modify**:
+   - `path/to/new/file.ts` - [purpose and what it will contain]
+   - `path/to/existing/file.ts` - [what specific changes will be made]
 
    ## TDD Tasks
 
