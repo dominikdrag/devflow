@@ -1,5 +1,41 @@
 # Changelog
 
+## [2.2.4] - 2026-01-13
+
+### Changed
+- Clarified in Phase 7 documentation that TEST tasks are added to plan file after user approval
+
+## [2.2.3] - 2026-01-13
+
+### Changed
+- **TEST tasks now created dynamically in Phase 7** instead of being pre-planned in Phase 5
+  - `test-analyzer` proposes tests based on actual implementation context
+  - TEST-NNN tasks created in plan file only after user approves the testing strategy
+  - More accurate test proposals since they're based on what was actually built
+- Phase 5 (Planning) no longer includes "Testing Tasks" section in plan template
+- Phase 7 restructured: analyze → present → approve → create TEST tasks → execute → run
+
+## [2.2.2] - 2026-01-13
+
+### Changed
+- Plan files now contain FULL details from phases 1-4/5 (not summaries)
+  - Discovery: All requirements and constraints
+  - Codebase Exploration: Key files, patterns, integration points, full agent findings
+  - Clarifications: Complete Q&A table with all ambiguities resolved
+  - Architecture Design: All options considered, selected architecture with full rationale
+  - (TDD only) Test Planning: All test cases and strategy details
+- Plan files now serve as complete reference enabling workflow resumption
+
+## [2.2.1] - 2026-01-13
+
+### Added
+- **`phaseHistory` array in state files** for richer workflow resumption context
+  - Each phase records: phase number, name, status, timestamps, and structured outputs
+  - Phase-specific outputs preserve key decisions (requirements, patterns, clarifications, architecture)
+  - Enables intelligent resumption after compaction with full historical context
+- PreCompact hook updated to build complete `phaseHistory` from conversation
+- Workflow resumption now displays historical context from completed phases
+
 ## [2.2.0] - 2026-01-11
 
 ### Added
