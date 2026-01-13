@@ -31,10 +31,28 @@ This workflow uses a state file (`claude-tmp/devflow-state.json`) to persist pro
     - Count remaining unchecked tasks (lines matching `- [ ]`)
     - Display: "Current task: {currentTask}, {N} tasks remaining"
   - Inform the user: "Resuming devflow workflow from Phase {currentPhase}"
-  - Display completed phases and key decisions from the state
+  - Display historical context from `phaseHistory`:
+    - For each completed phase, show phase name and key outputs
+    - Phase 2: Show key files and patterns discovered
+    - Phase 3: Show clarifications made
+    - Phase 4: Show selected architecture and rationale
   - Continue from the current phase (do NOT restart from Phase 1)
 - **If file does not exist**: This is a NEW workflow
-  - Create initial state file with `active: true, currentPhase: 1, completedPhases: []`
+  - Create initial state file:
+    ```json
+    {
+      "active": true,
+      "workflowType": "feature",
+      "featureDescription": "[from user input]",
+      "startedAt": "[current ISO timestamp]",
+      "lastUpdatedAt": "[current ISO timestamp]",
+      "currentPhase": 1,
+      "currentTask": null,
+      "phaseHistory": [],
+      "decisions": {"architecture": null, "testStrategy": null},
+      "summary": "Starting feature development workflow"
+    }
+    ```
   - Proceed with Phase 1
 
 ### State File Format
@@ -42,10 +60,25 @@ This workflow uses a state file (`claude-tmp/devflow-state.json`) to persist pro
 ```json
 {
   "active": true,
-  "currentPhase": 1,
-  "completedPhases": [],
+  "workflowType": "feature",
   "featureDescription": "...",
+  "startedAt": "ISO timestamp",
+  "lastUpdatedAt": "ISO timestamp",
+  "currentPhase": 1,
   "currentTask": null,
+  "phaseHistory": [
+    {
+      "phase": 1,
+      "name": "Discovery",
+      "status": "completed",
+      "startedAt": "ISO timestamp",
+      "completedAt": "ISO timestamp",
+      "outputs": {
+        "requirements": ["requirement 1", "requirement 2"],
+        "constraints": ["constraint 1"]
+      }
+    }
+  ],
   "decisions": {
     "architecture": null,
     "testStrategy": null
@@ -54,15 +87,33 @@ This workflow uses a state file (`claude-tmp/devflow-state.json`) to persist pro
 }
 ```
 
+### Phase-Specific Outputs
+
+Each phase stores structured outputs in `phaseHistory[].outputs`:
+
+| Phase | Name | Outputs |
+|-------|------|---------|
+| 1 | Discovery | `requirements[]`, `constraints[]` |
+| 2 | Codebase Exploration | `agentCount`, `keyFiles[]`, `patterns[]`, `integrationPoints[]` |
+| 3 | Clarifying Questions | `clarifications[]` (array of `{question, answer}`) |
+| 4 | Architecture Design | `agentCount`, `optionsPresented[]`, `selectedArchitecture`, `selectionRationale` |
+| 5 | Planning | `taskCount`, `testCount`, `reviewCount`, `planFile` |
+| 6 | Implementation | `tasksCompleted[]`, `tasksRemaining[]`, `filesModified[]` |
+| 7 | Testing | `testsWritten[]`, `testsPassing` |
+| 8 | Quality Review | `issuesFound`, `issuesFixed[]`, `issuesSkipped[]` |
+| 9 | Summary | `filesCreated[]`, `filesModified[]`, `testCoverage` |
+
 ### Updating State
 
 At the START of each phase, update the state file:
 - Set `currentPhase` to the new phase number
+- Set `lastUpdatedAt` to current ISO timestamp
+- Add new entry to `phaseHistory[]` with `status: "in_progress"`, `startedAt`, and empty `outputs`
 - Update `summary` with relevant context
 
 At the END of each phase, update the state file:
-- Add the phase number to `completedPhases`
-- Store any decisions made (architecture selection, test strategy approval)
+- Update the phase's `phaseHistory` entry: set `status: "completed"`, `completedAt`, and populate `outputs`
+- Store any decisions made (architecture selection, test strategy approval) in `decisions`
 
 ---
 
