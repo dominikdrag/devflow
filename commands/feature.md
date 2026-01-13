@@ -446,7 +446,7 @@ If either gate is missing, STOP and complete the required phase first.
 
 **Scope**: This phase creates and executes `TEST-NNN` testing tasks. Implementation tasks (`TASK-NNN`) were completed in Phase 6. Review tasks (`REVIEW-NNN`) are handled in Phase 8.
 
-**Approach**: Launch test-analyzer agent(s) to propose test cases based on the implemented code, get user approval, create TEST-NNN tasks in the plan file, then write tests directly (not delegated) to preserve local context from implementation. Use `test-runner` agent to execute tests.
+**Approach**: Launch test-analyzer agent(s) to propose test cases based on the implemented code. Present proposals to user for approval. **Once user approves the testing strategy, add `TEST-NNN` tasks to `claude-tmp/devflow-plan.md`** (this is when testing tasks are created - NOT during Phase 5 planning). Then write tests directly (not delegated) to preserve local context from implementation. Use `test-runner` agent to execute tests.
 
 **Actions**:
 
@@ -473,9 +473,12 @@ Use `AskUserQuestion` to get EXPLICIT confirmation:
 - Option 3: "Skip testing phase"
 
 ### Step 4: Create TEST Tasks in Plan File
+
+**IMPORTANT**: This is when `TEST-NNN` tasks are created and added to the plan file - NOT during Phase 5 planning. This ensures test proposals are based on actual implementation context.
+
 If user approves the testing strategy:
 1. Update `claude-tmp/devflow-plan.md`:
-   - Add "## Testing Tasks" section after Implementation Tasks
+   - Add "## Testing Tasks" section after Implementation Tasks (and before Quality Tasks)
    - Create `TEST-NNN` tasks based on approved test proposals (starting from TEST-001)
    - Each task should specify: test file path, what behavior is tested, edge cases covered
 2. Add progress log entry: `| [timestamp] | Testing tasks created from test-analyzer output |`
