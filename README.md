@@ -46,7 +46,7 @@ Launches the guided 9-phase **implementation-first** workflow:
 4. **Architecture Design** - Design approach with architect agents (user selects from options)
 5. **Planning** - Create implementation plan with task-level tracking (user approval required)
 6. **Implementation** - Build following approved plan, update task progress in plan file
-7. **Testing** - Reconcile test-analyzer proposals with planned TEST-NNN tasks (user approval required), update plan, write tests, run with test-runner
+7. **Testing** - Launch test-analyzer to propose tests, get user approval, create TEST-NNN tasks in plan file, write tests, run with test-runner
 8. **Quality Review** - Review with parallel reviewer agents, reconcile findings with REVIEW-NNN tasks, present for user selection, update plan (+ optional security audit)
 9. **Summary** - Document completion, clean up state file (plan file kept if incomplete)
 
@@ -83,7 +83,7 @@ The plugin includes gates that enforce the development workflow:
 #### `/feature` Workflow
 Each phase works exclusively on its designated task type:
 - **Phase 6 (Implementation)**: Works ONLY on `TASK-NNN` tasks
-- **Phase 7 (Testing)**: Works ONLY on `TEST-NNN` tasks
+- **Phase 7 (Testing)**: Creates `TEST-NNN` tasks from test-analyzer output, then executes them
 - **Phase 8 (Review)**: Works ONLY on `REVIEW-NNN` tasks
 
 #### `/tdd` Workflow
