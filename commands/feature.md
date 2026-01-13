@@ -268,13 +268,14 @@ At the start, confirm the configuration:
 
 2. **Define Implementation Tasks**: Break down the work into discrete, actionable tasks:
    - Create tasks for each file to be created/modified
-   - Group tasks by phase (Implementation, Testing, Quality)
+   - Group tasks by phase (Implementation, Quality)
    - Establish task dependencies where needed
-   - Assign task IDs: `TASK-NNN` for implementation, `TEST-NNN` for testing, `REVIEW-NNN` for quality
+   - Assign task IDs: `TASK-NNN` for implementation, `REVIEW-NNN` for quality
+   - **Note**: `TEST-NNN` tasks are created dynamically in Phase 7 by the test-analyzer
 
    **Phase Scope Rules** (document explicitly in plan):
    - **Phase 6 (Implementation)**: Works ONLY on `TASK-NNN` tasks
-   - **Phase 7 (Testing)**: Works ONLY on `TEST-NNN` tasks
+   - **Phase 7 (Testing)**: Creates `TEST-NNN` tasks from test-analyzer output, then executes them
    - **Phase 8 (Review)**: Works ONLY on `REVIEW-NNN` tasks
 
 3. **Define Acceptance Criteria**: Extract or derive acceptance criteria from requirements
@@ -352,7 +353,7 @@ At the start, confirm the configuration:
 
    ## Phase Scope Rules
    - **Phase 6 (Implementation)**: Works ONLY on `TASK-NNN` tasks
-   - **Phase 7 (Testing)**: Works ONLY on `TEST-NNN` tasks
+   - **Phase 7 (Testing)**: Creates `TEST-NNN` tasks from test-analyzer, then executes them
    - **Phase 8 (Review)**: Works ONLY on `REVIEW-NNN` tasks
 
    ## Implementation Tasks
@@ -362,9 +363,6 @@ At the start, confirm the configuration:
    - [ ] **TASK-002**: [description]
      - Files: `path/to/file.ts`
      - Depends on: TASK-001
-
-   ## Testing Tasks
-   - [ ] **TEST-001**: [description]
 
    ## Quality Tasks
    - [ ] **REVIEW-001**: Run code reviewers
@@ -446,58 +444,43 @@ If either gate is missing, STOP and complete the required phase first.
 
 **Goal**: Ensure comprehensive test coverage with user-approved strategy
 
-**Scope**: This phase works ONLY on `TEST-NNN` testing tasks. Implementation tasks (`TASK-NNN`) were completed in Phase 6. Review tasks (`REVIEW-NNN`) are handled in Phase 8.
+**Scope**: This phase creates and executes `TEST-NNN` testing tasks. Implementation tasks (`TASK-NNN`) were completed in Phase 6. Review tasks (`REVIEW-NNN`) are handled in Phase 8.
 
-**Approach**: Launch test-analyzer agent(s) to propose test cases, analyze against existing TEST-NNN tasks in the plan, refine the testing tasks based on analyzer output, get user approval, update the plan, then write tests directly (not delegated) to preserve local context from implementation. Use `test-runner` agent to execute tests.
+**Approach**: Launch test-analyzer agent(s) to propose test cases based on the implemented code, get user approval, create TEST-NNN tasks in the plan file, then write tests directly (not delegated) to preserve local context from implementation. Use `test-runner` agent to execute tests.
 
 **Actions**:
 
-### Step 1: Review Existing Testing Tasks
-1. Read `claude-tmp/devflow-plan.md` and extract all `TEST-NNN` tasks
-2. Note the current testing scope defined during planning
-
-### Step 2: Launch Test Analysis
+### Step 1: Launch Test Analysis
 1. Launch {analyzers} `test-analyzer` agent(s) to analyze the implemented changes:
    - **If 1**: Single comprehensive test analysis
    - **If 2+**: Distribute across unit tests, integration tests, and edge cases
    - Each will identify test patterns, propose test cases, and note mocking requirements
 2. **Wait for ALL analyzer agents to complete**
 
-### Step 3: Compare and Reconcile
-1. Compare test-analyzer proposals against existing `TEST-NNN` tasks
-2. Identify:
-   - **Gaps**: Tests proposed by analyzer NOT covered in current TEST-NNN tasks
-   - **Redundancies**: TEST-NNN tasks that overlap with analyzer proposals
-   - **Refinements**: How analyzer proposals improve or expand existing tasks
-3. Prepare a reconciled testing strategy
-
-### Step 4: Present to User
+### Step 2: Present to User
 1. Present the FULL output from test-analyzer agent(s) - do NOT summarize
-2. Show comparison between original TEST-NNN tasks and analyzer proposals
-3. Present the recommended reconciled testing strategy:
-   - Which TEST-NNN tasks to keep as-is
-   - Which TEST-NNN tasks to modify (with specific changes)
-   - Which new TEST-NNN tasks to add
-   - Which TEST-NNN tasks to remove (if any)
+2. Present the proposed testing strategy:
+   - Test cases organized by type (unit, integration, edge cases)
+   - Mocking requirements identified
+   - Coverage expectations
 
 **IMPORTANT**: Present the FULL output from test-analyzer agent(s) to the user - do NOT summarize or condense the test proposals. The user needs complete visibility into each proposed test case, its rationale, edge cases identified, and mocking requirements to make an informed decision about the testing strategy.
 
-### Step 5: User Approval
+### Step 3: User Approval
 Use `AskUserQuestion` to get EXPLICIT confirmation:
-- Option 1: "Proceed with reconciled testing strategy"
-- Option 2: "Use original TEST-NNN tasks only"
-- Option 3: "Modify testing scope" (user describes changes)
-- Option 4: "Skip testing phase"
+- Option 1: "Proceed with proposed testing strategy"
+- Option 2: "Modify testing scope" (user describes changes)
+- Option 3: "Skip testing phase"
 
-### Step 6: Update Plan File
-If user approves reconciled strategy or modifications:
+### Step 4: Create TEST Tasks in Plan File
+If user approves the testing strategy:
 1. Update `claude-tmp/devflow-plan.md`:
-   - Modify existing TEST-NNN task descriptions as agreed
-   - Add new TEST-NNN tasks (with sequential IDs continuing from highest existing)
-   - Remove any TEST-NNN tasks user agreed to drop
-2. Add progress log entry: `| [timestamp] | Testing tasks refined based on analyzer output |`
+   - Add "## Testing Tasks" section after Implementation Tasks
+   - Create `TEST-NNN` tasks based on approved test proposals (starting from TEST-001)
+   - Each task should specify: test file path, what behavior is tested, edge cases covered
+2. Add progress log entry: `| [timestamp] | Testing tasks created from test-analyzer output |`
 
-### Step 7: Execute Testing Tasks
+### Step 5: Execute Testing Tasks
 For each TEST-NNN task in the updated plan:
 1. Update state file with `currentTask: "TEST-NNN"`
 2. Write tests following the task description and project conventions:
@@ -508,7 +491,7 @@ For each TEST-NNN task in the updated plan:
 3. Mark task complete: Change `- [ ]` to `- [x]`, add `Completed: [timestamp]`
 4. Add progress log entry: `| [timestamp] | TEST-NNN completed |`
 
-### Step 8: Run Tests
+### Step 6: Run Tests
 1. Launch `test-runner` agent to execute all new tests
 2. If tests fail:
    - Review the failure report
