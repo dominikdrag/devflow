@@ -1,6 +1,6 @@
 {
   "name": "devflow",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Feature development workflows (/feature and /tdd) with specialized agents for codebase exploration, architecture design, test planning, security auditing, and quality review.",
   "author": {
     "name": "Dominik Drag"
