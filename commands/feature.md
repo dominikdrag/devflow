@@ -526,15 +526,15 @@ Document the selected architecture before proceeding.
 
 2. **Define Implementation Tasks**: Break down the work into discrete, actionable tasks:
    - Create tasks for each file to be created/modified
-   - Group tasks by phase (Implementation, Quality)
+   - Group tasks by phase (Implementation, Testing, Review)
    - Establish task dependencies where needed
-   - Assign task IDs: `TASK-NNN` for implementation, `REVIEW-NNN` for quality
-   - **Note**: `TEST-NNN` tasks are created dynamically in Phase 7 by the test-analyzer
+   - Assign task IDs: `TASK-NNN` for implementation
+   - **Note**: `TEST-NNN` and `REVIEW-NNN` tasks are created dynamically in Phases 7 and 8
 
    **Phase Scope Rules** (document explicitly in plan):
    - **Phase 6 (Implementation)**: Works ONLY on `TASK-NNN` tasks
    - **Phase 7 (Testing)**: Creates `TEST-NNN` tasks from test-analyzer output, then executes them
-   - **Phase 8 (Review)**: Works ONLY on `REVIEW-NNN` tasks
+   - **Phase 8 (Review)**: Creates/refines `REVIEW-NNN` tasks from code-reviewer, then executes them
 
 3. **Define Acceptance Criteria**: Extract or derive acceptance criteria from requirements
    - Each criterion should be testable/verifiable
@@ -612,7 +612,7 @@ Document the selected architecture before proceeding.
    ## Phase Scope Rules
    - **Phase 6 (Implementation)**: Works ONLY on `TASK-NNN` tasks
    - **Phase 7 (Testing)**: Creates `TEST-NNN` tasks from test-analyzer, then executes them
-   - **Phase 8 (Review)**: Works ONLY on `REVIEW-NNN` tasks
+   - **Phase 8 (Review)**: Creates/refines `REVIEW-NNN` tasks from code-reviewer, then executes them
 
    ## Implementation Tasks
    - [ ] **TASK-001**: [description]
@@ -622,9 +622,15 @@ Document the selected architecture before proceeding.
      - Files: `path/to/file.ts`
      - Depends on: TASK-001
 
-   ## Quality Tasks
-   - [ ] **REVIEW-001**: Run code reviewers
-   - [ ] **REVIEW-002**: Apply selected fixes
+   ## Test Tasks
+   > Populated during Phase 7 (Testing) based on test-analyzer agent output and user selection.
+
+   (none yet)
+
+   ## Review Tasks
+   > Populated during Phase 8 (Quality Review) based on code-reviewer agent findings and user selection.
+
+   (none yet)
 
    ## Acceptance Criteria
    - [ ] **AC-001**: [criterion]
@@ -823,7 +829,7 @@ Launch one `test-analyzer` agent per selected focus, all in parallel.
 
 If user approves the testing strategy:
 1. Update `claude-tmp/devflow-plan.md`:
-   - Add "## Testing Tasks" section after Implementation Tasks (and before Quality Tasks)
+   - Populate the "## Test Tasks" section (already exists with placeholder "(none yet)")
    - Create `TEST-NNN` tasks based on approved test proposals (starting from TEST-001)
    - Each task should specify: test file path, what behavior is tested, edge cases covered
 2. Add progress log entry: `| [timestamp] | Testing tasks created from test-analyzer output |`

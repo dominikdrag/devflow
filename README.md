@@ -84,7 +84,7 @@ The plugin includes gates that enforce the development workflow:
 Each phase works exclusively on its designated task type:
 - **Phase 6 (Implementation)**: Works ONLY on `TASK-NNN` tasks
 - **Phase 7 (Testing)**: Creates `TEST-NNN` tasks from test-analyzer output, then executes them
-- **Phase 8 (Review)**: Works ONLY on `REVIEW-NNN` tasks
+- **Phase 8 (Review)**: Creates/refines `REVIEW-NNN` tasks from code-reviewer, then executes them
 
 #### `/tdd` Workflow
 TDD tasks use a different structure with Red-Green-Refactor substeps:

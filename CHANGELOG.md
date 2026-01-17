@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.3.1] - 2026-01-17
+
+### Changed
+- Plan template now includes explicit `## Test Tasks` and `## Review Tasks` sections
+  - Both sections start with "(none yet)" placeholder and explanatory note
+  - `TEST-NNN` tasks populated during Phase 7 (Testing)
+  - `REVIEW-NNN` tasks populated during Phase 8 (Quality Review)
+- Renamed "Quality Tasks" to "Review Tasks" for consistency with `REVIEW-NNN` naming
+- Updated Phase Scope Rules: Phase 8 now "Creates/refines `REVIEW-NNN` tasks" (not just works on them)
+- Removed misleading placeholder tasks from plan template (actual tasks created dynamically)
+
 ## [2.3.0] - 2026-01-17
 
 ### Changed
