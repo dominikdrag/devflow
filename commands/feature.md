@@ -1,7 +1,7 @@
 ---
 description: Guided feature development with codebase understanding and architecture focus
 allowed-tools: Read, Write, Edit, Glob, Grep, LS, Bash, Agent, TodoWrite, AskUser
-argument-hint: [--analyzers=N] [--reviewers=N] <feature-description>
+argument-hint: <feature-description>
 ---
 
 # Feature Development Workflow
@@ -99,8 +99,8 @@ Each phase stores structured outputs in `phaseHistory[].outputs`:
 | 4 | Architecture Design | `perspectivesSelected[]`, `optionsPresented[]`, `selectedArchitecture`, `selectionRationale` |
 | 5 | Planning | `taskCount`, `testCount`, `reviewCount`, `planFile` |
 | 6 | Implementation | `tasksCompleted[]`, `tasksRemaining[]`, `filesModified[]` |
-| 7 | Testing | `testsWritten[]`, `testsPassing` |
-| 8 | Quality Review | `issuesFound`, `issuesFixed[]`, `issuesSkipped[]` |
+| 7 | Testing | `focusesSelected[]`, `testsWritten[]`, `testsPassing` |
+| 8 | Quality Review | `focusesSelected[]`, `issuesFound`, `issuesFixed[]`, `issuesSkipped[]` |
 | 9 | Summary | `filesCreated[]`, `filesModified[]`, `testCoverage` |
 
 ### Updating State
@@ -123,18 +123,7 @@ At the END of each phase, update the state file:
 
 Arguments: $ARGUMENTS
 
-Parse optional flags to configure agent counts:
-- `--analyzers=N` - Number of `test-analyzer` agents (default: 1)
-- `--reviewers=N` - Number of `code-reviewer` agents (default: 3)
-
-Valid range: 1-5 for all flags. If a value is out of range, use the closest value in range.
-
-Remaining text after flags is the feature description.
-
-### Display Configuration
-
-At the start, confirm the configuration:
-> Using agent counts: {analyzers} analyzers, {reviewers} reviewers
+The entire argument text is the feature description. All phases with agent selection are now interactive.
 
 ---
 
@@ -715,33 +704,120 @@ If either gate is missing, STOP and complete the required phase first.
 
 **Scope**: This phase creates and executes `TEST-NNN` testing tasks. Implementation tasks (`TASK-NNN`) were completed in Phase 6. Review tasks (`REVIEW-NNN`) are handled in Phase 8.
 
-**Approach**: Launch test-analyzer agent(s) to propose test cases based on the implemented code. Present proposals to user for approval. **Once user approves the testing strategy, add `TEST-NNN` tasks to `claude-tmp/devflow-plan.md`** (this is when testing tasks are created - NOT during Phase 5 planning). Then write tests directly (not delegated) to preserve local context from implementation. Use `test-runner` agent to execute tests.
+**Approach**: Launch test-analyzer agent(s) to propose test cases based on the implemented code. Present proposals to user for approval. **Once user approves the testing strategy, add `TEST-NNN` tasks to `claude-tmp/devflow-plan.md`**. Then write tests directly (not delegated) to preserve local context from implementation.
 
 **Actions**:
 
-### Step 1: Launch Test Analysis
-1. Launch {analyzers} `test-analyzer` agent(s) to analyze the implemented changes:
-   - **If 1**: Single comprehensive test analysis
-   - **If 2+**: Distribute across unit tests, integration tests, and edge cases
-   - Each will identify test patterns, propose test cases, and note mocking requirements
-2. **Wait for ALL analyzer agents to complete**
+### Step 1: Present Test Focus Options
 
-### Step 2: Present to User
-1. Present the FULL output from test-analyzer agent(s) - do NOT summarize
-2. Present the proposed testing strategy:
-   - Test cases organized by type (unit, integration, edge cases)
-   - Mocking requirements identified
-   - Coverage expectations
+Display available test focuses for user selection:
 
-**IMPORTANT**: Present the FULL output from test-analyzer agent(s) to the user - do NOT summarize or condense the test proposals. The user needs complete visibility into each proposed test case, its rationale, edge cases identified, and mocking requirements to make an informed decision about the testing strategy.
+```
+## Test Planning
 
-### Step 3: User Approval
-Use `AskUserQuestion` to get EXPLICIT confirmation:
-- Option 1: "Proceed with proposed testing strategy"
-- Option 2: "Modify testing scope" (user describes changes)
-- Option 3: "Skip testing phase"
+Select which test focuses to explore. Each launches a parallel test analyzer agent.
 
-### Step 4: Create TEST Tasks in Plan File
+  Core Focuses (recommended for most features)
+   1. Happy Path          - Normal usage, expected inputs/outputs, core functionality
+   2. Edge Cases          - Boundaries, empty/null, max values, special characters
+   3. Error Handling      - Invalid inputs, exceptions, failure responses
+
+  Specialized Focuses (use when relevant)
+   4. Integration         - For: external services, database, API interactions
+   5. State & Mutations   - For: state management, data transformations, side effects
+   6. Security            - For: auth, permissions, user input, sensitive data
+
+Enter selection (e.g., "1,2,3" or "1-3") [default: 1,2,3]:
+```
+
+Wait for user input before proceeding.
+
+### Step 2: Parse Selection
+
+Accept input formats:
+- Comma-separated: `1,2,3`
+- Ranges: `1-3`
+- Mixed: `1-3,5`
+- Empty/Enter: Use default `1,2,3`
+
+Validate: numbers 1-6 only, deduplicate, sort.
+
+### Step 3: Launch Selected Test Analyzers
+
+Launch one `test-analyzer` agent per selected focus, all in parallel.
+
+**Agent Prompt Format**: Include the focus assignment in each agent's prompt:
+> Your assigned test focus is: **[Focus Name]**
+>
+> [Include the FULL focus definition from the reference below]
+>
+> Analyze tests needed for: [feature description]
+>
+> Implementation context: [files modified in Phase 6]
+
+**Focus Definitions** (inject the selected one into each agent prompt):
+
+1. **Happy Path**
+   - Focus: Normal usage scenarios that verify core functionality
+   - When to use: Always - validates feature works as intended
+   - Analyze code for expected inputs producing expected outputs
+   - Cover the main success scenarios users will encounter
+   - Each test verifies ONE specific behavior
+   - Name tests to describe the behavior being verified
+
+2. **Edge Cases**
+   - Focus: Boundary conditions and unusual but valid inputs
+   - When to use: Always - catches common bugs at boundaries
+   - Empty inputs, zero values, maximum values
+   - Null/undefined handling where applicable
+   - Boundary conditions at limits (off-by-one, etc.)
+   - Special characters, unicode, format edge cases
+
+3. **Error Handling**
+   - Focus: Invalid inputs and failure responses
+   - When to use: Always - ensures graceful failure behavior
+   - Invalid input types and formats
+   - Missing required data
+   - Out-of-range values
+   - Expected error messages and response codes
+
+4. **Integration**
+   - Focus: Interactions with external systems and components
+   - When to use: Features with database, API, or service dependencies
+   - Database operations (CRUD, transactions)
+   - External API calls (success and failure scenarios)
+   - Component interactions across boundaries
+   - Mock specifications for external dependencies
+
+5. **State & Mutations**
+   - Focus: State changes and data transformations
+   - When to use: Features managing state or modifying data
+   - State transitions and lifecycle
+   - Data transformations at each step
+   - Side effects and their verification
+   - Rollback and cleanup scenarios
+
+6. **Security**
+   - Focus: Authentication, authorization, and input safety
+   - When to use: Auth flows, user input handling, sensitive data
+   - Authentication failures and token handling
+   - Authorization checks and permission boundaries
+   - Input sanitization and injection prevention
+   - Sensitive data handling
+
+**WAIT for ALL agent results** - Do NOT proceed until every launched agent has returned.
+
+### Step 4: Present and Approve Test Plan
+
+1. Present the FULL output from all test-analyzer agents - do NOT summarize
+2. Use `AskUserQuestion` to get EXPLICIT confirmation:
+   - Option 1: "Proceed with proposed testing strategy"
+   - Option 2: "Modify testing scope" (user describes changes)
+   - Option 3: "Skip testing phase"
+
+**IMPORTANT**: Present the FULL output from all test-analyzer agents to the user - do NOT summarize or condense. The user needs complete visibility into each proposed test case to make an informed decision.
+
+### Step 5: Create TEST Tasks in Plan File
 
 **IMPORTANT**: This is when `TEST-NNN` tasks are created and added to the plan file - NOT during Phase 5 planning. This ensures test proposals are based on actual implementation context.
 
@@ -752,18 +828,14 @@ If user approves the testing strategy:
    - Each task should specify: test file path, what behavior is tested, edge cases covered
 2. Add progress log entry: `| [timestamp] | Testing tasks created from test-analyzer output |`
 
-### Step 5: Execute Testing Tasks
+### Step 6: Execute Testing Tasks
 For each TEST-NNN task in the updated plan:
 1. Update state file with `currentTask: "TEST-NNN"`
-2. Write tests following the task description and project conventions:
-   - Happy path scenarios
-   - Edge cases and boundary conditions
-   - Error handling paths
-   - Integration points with existing code
+2. Write tests following the task description and project conventions
 3. Mark task complete: Change `- [ ]` to `- [x]`, add `Completed: [timestamp]`
 4. Add progress log entry: `| [timestamp] | TEST-NNN completed |`
 
-### Step 6: Run Tests
+### Step 7: Run Tests
 1. Launch `test-runner` agent to execute all new tests
 2. If tests fail:
    - Review the failure report
@@ -779,36 +851,126 @@ For each TEST-NNN task in the updated plan:
 - Tests are independent (no shared state)
 - Follow existing project test patterns exactly
 
-**Output**: User-approved test suite with passing tests, updated plan file with refined TEST-NNN tasks
+**Output**: User-approved test suite with passing tests, updated plan file with TEST-NNN tasks
 
 ---
 
 ## Phase 8: Quality Review
 
-**Goal**: Ensure code quality and correctness through user-reviewed findings
+**Goal**: Ensure code quality and correctness through user-selected review focuses
 
 **Scope**: This phase works ONLY on `REVIEW-NNN` quality review tasks. Implementation tasks (`TASK-NNN`) and testing tasks (`TEST-NNN`) were completed in previous phases.
 
 **Actions**:
 
-### Step 1: Review Existing Review Tasks
-1. Read `claude-tmp/devflow-plan.md` and extract all `REVIEW-NNN` tasks
-2. Note the current review scope defined during planning
+### Step 1: Present Review Focus Options
 
-### Step 2: Launch Review Agents
-1. Launch {reviewers} `code-reviewer` agent(s) in parallel:
-   - **If 1**: Comprehensive review covering all aspects
-   - **If 2**: Split between (1) correctness/bugs and (2) conventions/maintainability
-   - **If 3+**: Distribute across correctness, conventions, and maintainability
-2. **Wait for ALL agents to complete** before proceeding
-3. **Optional**: If user requests security audit, also launch `security-auditor` agent and wait
+Display available review focuses for user selection:
 
-### Step 3: Present Full Agent Output
-**IMPORTANT**: Present the FULL output from each review agent to the user - do NOT summarize or condense their findings. The user needs complete visibility into each reviewer's analysis, reasoning, and specific concerns to make informed decisions about which issues to address. This is a critical quality gate requiring maximum user control.
+```
+## Quality Review
 
-### Step 4: Reconcile with Plan
-1. Compare code-reviewer findings against existing `REVIEW-NNN` tasks
-2. Map high-confidence issues (>=80) to actionable review tasks
+Select which review focuses to explore. Each launches a parallel reviewer agent.
+
+  Core Focuses (recommended for most features)
+   1. Correctness & Bugs   - Logic errors, null handling, race conditions
+   2. Conventions & Style  - Project guidelines, naming, patterns
+   3. Error Handling       - Missing catches, recovery, error messages
+
+  Specialized Focuses (use when relevant)
+   4. Security             - For: auth, user input, external APIs, sensitive data
+   5. Performance          - For: hot paths, data processing, resource management
+   6. Maintainability      - For: large changes, shared code, public APIs
+
+Enter selection (e.g., "1,2,3" or "1-3") [default: 1,2,3]:
+```
+
+Wait for user input before proceeding.
+
+### Step 2: Parse Selection
+
+Accept input formats:
+- Comma-separated: `1,2,3`
+- Ranges: `1-3`
+- Mixed: `1-3,5`
+- Empty/Enter: Use default `1,2,3`
+
+Validate: numbers 1-6 only, deduplicate, sort.
+
+### Step 3: Launch Selected Review Agents
+
+Launch agents based on selected focuses, all in parallel:
+- **Focuses 1, 2, 3, 5, 6** → Launch `code-reviewer` agent with focus injected
+- **Focus 4 (Security)** → Launch `security-auditor` agent (already specialized)
+
+**Agent Prompt Format for code-reviewer**: Include the focus assignment in each agent's prompt:
+> Your assigned review focus is: **[Focus Name]**
+>
+> [Include the FULL focus definition from the reference below]
+>
+> Review the implementation for: [feature description]
+>
+> Files to review: [files modified in Phase 6 and 7]
+
+**Focus Definitions for code-reviewer** (inject the selected one into each agent prompt):
+
+1. **Correctness & Bugs**
+   - Focus: Logic errors and functional correctness
+   - When to use: Always - catches bugs that affect functionality
+   - Logic errors and incorrect conditions
+   - Null/undefined handling issues
+   - Off-by-one errors
+   - Race conditions and concurrency bugs
+   - Resource leaks (memory, file handles, connections)
+
+2. **Conventions & Style**
+   - Focus: Project guidelines and code consistency
+   - When to use: Always - ensures codebase consistency
+   - Adherence to CLAUDE.md and style guides
+   - Import conventions and module organization
+   - Naming conventions
+   - Framework-specific patterns
+   - Code organization and structure
+
+3. **Error Handling**
+   - Focus: Failure modes and error recovery
+   - When to use: Always - ensures graceful failure behavior
+   - Missing try/catch blocks where needed
+   - Inadequate error recovery strategies
+   - Unclear or missing error messages
+   - Cleanup and resource release on errors
+   - Error propagation patterns
+
+5. **Performance**
+   - Focus: Efficiency and resource usage
+   - When to use: Hot paths, data processing, loops, resource-constrained code
+   - Inefficient algorithms (O(n²) where O(n) possible)
+   - N+1 query problems
+   - Memory leaks and excessive allocations
+   - Missing caching opportunities
+   - Blocking operations in async contexts
+
+6. **Maintainability**
+   - Focus: Long-term code health and readability
+   - When to use: Large changes, shared utilities, public APIs
+   - Code duplication that should be abstracted
+   - Unclear or misleading code
+   - Missing or outdated documentation
+   - Testability concerns
+   - Excessive complexity
+
+**For Focus 4 (Security)**: Launch `security-auditor` agent directly (it's already specialized for OWASP Top 10, threat modeling, etc.). No focus injection needed.
+
+**WAIT for ALL agent results** - Do NOT proceed until every launched agent has returned.
+
+### Step 4: Present Full Agent Output
+
+**IMPORTANT**: Present the FULL output from each review agent to the user - do NOT summarize or condense their findings. The user needs complete visibility into each reviewer's analysis, reasoning, and specific concerns to make informed decisions about which issues to address.
+
+### Step 5: Reconcile with Plan
+
+1. Read `claude-tmp/devflow-plan.md` and extract existing `REVIEW-NNN` tasks
+2. Map high-confidence issues (>=80 for code-reviewer, >=85 for security-auditor) to actionable tasks
 3. Propose updates to `REVIEW-NNN` tasks:
    - Add specific issue-fixing tasks (e.g., "REVIEW-003: Fix null check in auth.ts:45")
    - Refine generic review tasks with specific findings
@@ -819,12 +981,9 @@ For each TEST-NNN task in the updated plan:
    - **Important Issues** (Confidence 80-89): Should be addressed
    - **Suggestions** (Confidence < 80): Nice to have improvements
 
-### Step 5: Present Reconciled Review Tasks
-Display:
-1. Original REVIEW-NNN tasks from plan
-2. Proposed changes based on reviewer findings
-3. Consolidated findings summary:
+### Step 6: Present Reconciled Review Tasks
 
+Display:
 ```
 ## Review Findings Summary
 
@@ -849,13 +1008,15 @@ Display:
 2. ...
 ```
 
-### Step 6: User Selection
+### Step 7: User Selection
+
 Use `AskUserQuestion` with `multiSelect: true` to let user choose which issues/tasks to address:
 - List each issue as a selectable option
 - Group by severity in the question
 - Include "Skip all - proceed to summary" as an option
 
-### Step 7: Update Plan File
+### Step 8: Update Plan File
+
 1. Update `claude-tmp/devflow-plan.md`:
    - Add/modify REVIEW-NNN tasks based on user selection
    - Each selected issue becomes a trackable task with sequential ID
@@ -863,25 +1024,27 @@ Use `AskUserQuestion` with `multiSelect: true` to let user choose which issues/t
 2. Add progress log entry: `| [timestamp] | Review tasks refined based on reviewer output |`
 3. Add progress log entry: `| [timestamp] | User selected {count} issues to fix |`
 
-### Step 8: Execute Review Tasks
+### Step 9: Execute Review Tasks
+
 For each selected REVIEW-NNN task in the updated plan:
 1. Update state file with `currentTask: "REVIEW-NNN"`
 2. Apply the fix
 3. Mark task complete: Change `- [ ]` to `- [x]`, add `Completed: [timestamp]`
 4. Add progress log entry: `| [timestamp] | REVIEW-NNN completed |`
 
-### Step 9: Offer Re-review
+### Step 10: Offer Re-review
+
 If any fixes were applied, use `AskUserQuestion` to ask:
 - "Run review again to verify fixes?"
 - "Proceed to summary"
 
-If user chooses re-review, return to Step 2 with a focused scope.
+If user chooses re-review, return to Step 1 with the same or different focus selection.
 
 **Plan File Updates Summary**:
 - At phase start: Add `| [timestamp] | Quality review initiated |` to progress log
 - After reconciliation: Add `| [timestamp] | Review tasks refined based on reviewer output |`
 - After user selection: Add `| [timestamp] | User selected {count} issues to fix |`
-- After each fix: Mark `REVIEW-NNN` task complete with `Completed: [timestamp]}`, add progress log entry
+- After each fix: Mark `REVIEW-NNN` task complete with `Completed: [timestamp]`, add progress log entry
 - After re-review (if done): Add `| [timestamp] | Re-review completed |`
 - At phase end: Add `| [timestamp] | Quality review phase completed |`
 - Update header: `Current Task`, `Last Updated`
@@ -920,7 +1083,7 @@ If user chooses re-review, return to Step 2 with a focused scope.
 
 ## Usage
 
-This workflow is invoked with `/feature` followed by optional flags and a feature description:
+This workflow is invoked with `/feature` followed by a feature description:
 
 ### Basic Usage
 ```
@@ -928,22 +1091,13 @@ This workflow is invoked with `/feature` followed by optional flags and a featur
 /feature
 ```
 
-### With Agent Count Overrides
-```
-/feature --reviewers=5 Implement payment processing
-/feature --analyzers=2 --reviewers=1 Small utility function
-```
-
-### Flag Reference
-
-| Flag | Default | Range | Phase |
-|------|---------|-------|-------|
-| `--analyzers=N` | 1 | 1-5 | Phase 7: Testing |
-| `--reviewers=N` | 3 | 1-5 | Phase 8: Quality Review |
-
-**Note**: Exploration focuses (Phase 2) and architecture perspectives (Phase 4) are selected interactively.
-
 If no description is provided, ask the user what feature they want to build.
+
+**Note**: All agent selection phases are interactive:
+- Phase 2: Exploration focuses
+- Phase 4: Architecture perspectives
+- Phase 7: Test focuses
+- Phase 8: Review focuses
 
 ## When to Use This Workflow
 

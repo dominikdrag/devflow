@@ -1,7 +1,7 @@
 ---
 description: Test-Driven Development workflow with Red-Green-Refactor cycles
 allowed-tools: Read, Write, Edit, Glob, Grep, LS, Bash, Agent, TodoWrite, AskUser
-argument-hint: [--planners=N] [--reviewers=N] <feature-description>
+argument-hint: <feature-description>
 ---
 
 # TDD Development Workflow
@@ -103,11 +103,11 @@ Each phase stores structured outputs in `phaseHistory[].outputs`:
 | 1 | Discovery | `requirements[]`, `constraints[]` |
 | 2 | Codebase Exploration | `focusesSelected[]`, `keyFiles[]`, `patterns[]`, `integrationPoints[]` |
 | 3 | Clarifying Questions | `clarifications[]` (array of `{question, answer}`) |
-| 4 | Test Planning | `agentCount`, `testCases[]`, `testPlanApproved` |
+| 4 | Test Planning | `focusesSelected[]`, `testCases[]`, `testPlanApproved` |
 | 5 | Architecture Design | `perspectivesSelected[]`, `optionsPresented[]`, `selectedArchitecture`, `selectionRationale` |
 | 6 | Planning | `tddTaskCount`, `planFile` |
 | 7 | TDD Implementation | `completedTasks[]`, `blockedTasks[]`, `skippedRefactors[]` |
-| 8 | Quality Review | `issuesFound`, `issuesFixed[]`, `issuesSkipped[]` |
+| 8 | Quality Review | `focusesSelected[]`, `issuesFound`, `issuesFixed[]`, `issuesSkipped[]` |
 | 9 | Summary | `filesCreated[]`, `filesModified[]`, `testCoverage` |
 
 ### Updating State
@@ -130,18 +130,7 @@ At the END of each phase, update the state file:
 
 Arguments: $ARGUMENTS
 
-Parse optional flags to configure agent counts:
-- `--planners=N` - Number of `tdd-test-planner` agents (default: 1)
-- `--reviewers=N` - Number of `code-reviewer` agents (default: 3)
-
-Valid range: 1-3 for planners, 1-5 for reviewers. If a value is out of range, use the closest value in range.
-
-Remaining text after flags is the feature description.
-
-### Display Configuration
-
-At the start, confirm the configuration:
-> Using agent counts: {planners} planners, {reviewers} reviewers
+The entire argument text is the feature description. All phases with agent selection are now interactive.
 
 ---
 
@@ -331,24 +320,124 @@ Launch one `code-explorer` agent per selected focus, all in parallel.
 This is the core TDD differentiator - tests are designed from requirements, not from code.
 
 **Actions**:
-1. Launch {planners} `tdd-test-planner` agent(s):
-   - **If 1**: Single comprehensive test design covering all requirements
-   - **If 2+**: Distribute across core functionality, edge cases, and integration tests
-2. **WAIT for ALL agent results** - Do NOT proceed until every launched agent has returned
-3. Present the FULL test design output to the user - do NOT summarize or condense
-4. Use `AskUserQuestion` with options:
+
+### Step 1: Present Test Focus Options
+
+Display available test focuses for user selection:
+
+```
+## Test Planning
+
+Select which test focuses to explore. Each launches a parallel test planner agent.
+
+  Core Focuses (recommended for most features)
+   1. Happy Path          - Normal usage, expected inputs/outputs, core functionality
+   2. Edge Cases          - Boundaries, empty/null, max values, special characters
+   3. Error Handling      - Invalid inputs, exceptions, failure responses
+
+  Specialized Focuses (use when relevant)
+   4. Integration         - For: external services, database, API interactions
+   5. State & Mutations   - For: state management, data transformations, side effects
+   6. Security            - For: auth, permissions, user input, sensitive data
+
+Enter selection (e.g., "1,2,3" or "1-3") [default: 1,2,3]:
+```
+
+Wait for user input before proceeding.
+
+### Step 2: Parse Selection
+
+Accept input formats:
+- Comma-separated: `1,2,3`
+- Ranges: `1-3`
+- Mixed: `1-3,5`
+- Empty/Enter: Use default `1,2,3`
+
+Validate: numbers 1-6 only, deduplicate, sort.
+
+### Step 3: Launch Selected Test Planners
+
+Launch one `tdd-test-planner` agent per selected focus, all in parallel.
+
+**Agent Prompt Format**: Include the focus assignment in each agent's prompt:
+> Your assigned test focus is: **[Focus Name]**
+>
+> [Include the FULL focus definition from the reference below]
+>
+> Design tests for: [feature description]
+>
+> Requirements context: [key requirements from Phase 1]
+>
+> Codebase context: [relevant patterns from Phase 2]
+
+**Focus Definitions** (inject the selected one into each agent prompt):
+
+1. **Happy Path**
+   - Focus: Normal usage scenarios that verify core functionality
+   - When to use: Always - validates feature works as intended
+   - Design tests for expected inputs producing expected outputs
+   - Cover the main success scenarios users will encounter
+   - Each test verifies ONE specific behavior
+   - Name tests to describe the behavior being verified
+
+2. **Edge Cases**
+   - Focus: Boundary conditions and unusual but valid inputs
+   - When to use: Always - catches common bugs at boundaries
+   - Empty inputs, zero values, maximum values
+   - Null/undefined handling where applicable
+   - Boundary conditions at limits (off-by-one, etc.)
+   - Special characters, unicode, format edge cases
+
+3. **Error Handling**
+   - Focus: Invalid inputs and failure responses
+   - When to use: Always - ensures graceful failure behavior
+   - Invalid input types and formats
+   - Missing required data
+   - Out-of-range values
+   - Expected error messages and response codes
+
+4. **Integration**
+   - Focus: Interactions with external systems and components
+   - When to use: Features with database, API, or service dependencies
+   - Database operations (CRUD, transactions)
+   - External API calls (success and failure scenarios)
+   - Component interactions across boundaries
+   - Mock specifications for external dependencies
+
+5. **State & Mutations**
+   - Focus: State changes and data transformations
+   - When to use: Features managing state or modifying data
+   - State transitions and lifecycle
+   - Data transformations at each step
+   - Side effects and their verification
+   - Rollback and cleanup scenarios
+
+6. **Security**
+   - Focus: Authentication, authorization, and input safety
+   - When to use: Auth flows, user input handling, sensitive data
+   - Authentication failures and token handling
+   - Authorization checks and permission boundaries
+   - Input sanitization and injection prevention
+   - Sensitive data handling
+
+**WAIT for ALL agent results** - Do NOT proceed until every launched agent has returned.
+
+### Step 4: Present and Approve Test Plan
+
+1. Present the FULL test design output from all agents - do NOT summarize
+2. Use `AskUserQuestion` with options:
    - "Proceed with this test plan"
    - "Modify test plan" (user describes changes)
    - "Add more test cases"
-5. If user selects modification:
+3. If user selects modification:
    - Wait for user input
    - Update the test plan accordingly
    - Re-present and ask again
-6. Store approved test plan in state file: `decisions.testPlan`
+4. Store approved test plan in state file: `decisions.testPlan`
 
 **CRITICAL**: Do NOT proceed to Phase 5 until user has explicitly approved the test plan via `AskUserQuestion`. The response IS the approval gate.
 
-**IMPORTANT**: Present the FULL output from tdd-test-planner agent(s) to the user - do NOT summarize or condense. The user needs complete visibility into each proposed test case, its rationale, and expected behaviors to make an informed decision. This is a key decision point requiring maximum user control.
+**IMPORTANT**: Present the FULL output from all tdd-test-planner agents to the user - do NOT summarize or condense. The user needs complete visibility into each proposed test case to make an informed decision.
 
 **Output**: User-approved test specifications that will drive implementation
 
@@ -821,36 +910,128 @@ If any gate is missing, STOP and complete the required phase first.
 
 ## Phase 8: Quality Review
 
-**Goal**: Ensure code quality and correctness through user-reviewed findings
+**Goal**: Ensure code quality and correctness through user-selected review focuses
 
 **Scope**: This phase runs AFTER all TDD cycles are complete (not per-task).
 
 **Actions**:
 
-### Step 1: Review Existing Review Tasks
-1. Read `claude-tmp/tdd-plan.md` and extract all `REVIEW-NNN` tasks
-2. Note any blocked or skipped TDD tasks (they won't be reviewed)
+### Step 1: Present Review Focus Options
 
-### Step 2: Launch Review Agents
-1. Launch {reviewers} `code-reviewer` agent(s) in parallel:
-   - **If 1**: Comprehensive review covering all aspects
-   - **If 2**: Split between (1) correctness/bugs and (2) conventions/maintainability
-   - **If 3+**: Distribute across correctness, conventions, and maintainability
-2. **WAIT for ALL agents to complete** before proceeding
-3. **Optional**: If user requests security audit, also launch `security-auditor` agent and wait
+Display available review focuses for user selection:
 
-### Step 3: Present Full Agent Output
+```
+## Quality Review
+
+Select which review focuses to explore. Each launches a parallel reviewer agent.
+
+  Core Focuses (recommended for most features)
+   1. Correctness & Bugs   - Logic errors, null handling, race conditions
+   2. Conventions & Style  - Project guidelines, naming, patterns
+   3. Error Handling       - Missing catches, recovery, error messages
+
+  Specialized Focuses (use when relevant)
+   4. Security             - For: auth, user input, external APIs, sensitive data
+   5. Performance          - For: hot paths, data processing, resource management
+   6. Maintainability      - For: large changes, shared code, public APIs
+
+Enter selection (e.g., "1,2,3" or "1-3") [default: 1,2,3]:
+```
+
+Wait for user input before proceeding.
+
+### Step 2: Parse Selection
+
+Accept input formats:
+- Comma-separated: `1,2,3`
+- Ranges: `1-3`
+- Mixed: `1-3,5`
+- Empty/Enter: Use default `1,2,3`
+
+Validate: numbers 1-6 only, deduplicate, sort.
+
+### Step 3: Launch Selected Review Agents
+
+Launch agents based on selected focuses, all in parallel:
+- **Focuses 1, 2, 3, 5, 6** → Launch `code-reviewer` agent with focus injected
+- **Focus 4 (Security)** → Launch `security-auditor` agent (already specialized)
+
+**Agent Prompt Format for code-reviewer**: Include the focus assignment in each agent's prompt:
+> Your assigned review focus is: **[Focus Name]**
+>
+> [Include the FULL focus definition from the reference below]
+>
+> Review the TDD implementation for: [feature description]
+>
+> Files to review: [files created/modified in Phase 7]
+
+**Focus Definitions for code-reviewer** (inject the selected one into each agent prompt):
+
+1. **Correctness & Bugs**
+   - Focus: Logic errors and functional correctness
+   - When to use: Always - catches bugs that affect functionality
+   - Logic errors and incorrect conditions
+   - Null/undefined handling issues
+   - Off-by-one errors
+   - Race conditions and concurrency bugs
+   - Resource leaks (memory, file handles, connections)
+
+2. **Conventions & Style**
+   - Focus: Project guidelines and code consistency
+   - When to use: Always - ensures codebase consistency
+   - Adherence to CLAUDE.md and style guides
+   - Import conventions and module organization
+   - Naming conventions
+   - Framework-specific patterns
+   - Code organization and structure
+
+3. **Error Handling**
+   - Focus: Failure modes and error recovery
+   - When to use: Always - ensures graceful failure behavior
+   - Missing try/catch blocks where needed
+   - Inadequate error recovery strategies
+   - Unclear or missing error messages
+   - Cleanup and resource release on errors
+   - Error propagation patterns
+
+5. **Performance**
+   - Focus: Efficiency and resource usage
+   - When to use: Hot paths, data processing, loops, resource-constrained code
+   - Inefficient algorithms (O(n²) where O(n) possible)
+   - N+1 query problems
+   - Memory leaks and excessive allocations
+   - Missing caching opportunities
+   - Blocking operations in async contexts
+
+6. **Maintainability**
+   - Focus: Long-term code health and readability
+   - When to use: Large changes, shared utilities, public APIs
+   - Code duplication that should be abstracted
+   - Unclear or misleading code
+   - Missing or outdated documentation
+   - Testability concerns
+   - Excessive complexity
+
+**For Focus 4 (Security)**: Launch `security-auditor` agent directly (it's already specialized for OWASP Top 10, threat modeling, etc.). No focus injection needed.
+
+**WAIT for ALL agent results** - Do NOT proceed until every launched agent has returned.
+
+### Step 4: Present Full Agent Output
+
 **IMPORTANT**: Present the FULL output from each review agent to the user - do NOT summarize or condense their findings. The user needs complete visibility into each reviewer's analysis, reasoning, and specific concerns to make informed decisions about which issues to address.
 
-### Step 4: Organize Findings
-1. Map high-confidence issues (>=80) to actionable review tasks
-2. Deduplicate overlapping issues (same file + line + similar description)
-3. Organize by severity:
+### Step 5: Organize Findings
+
+1. Read `claude-tmp/tdd-plan.md` and note any blocked or skipped TDD tasks (they won't be reviewed)
+2. Map high-confidence issues (>=80 for code-reviewer, >=85 for security-auditor) to actionable tasks
+3. Deduplicate overlapping issues (same file + line + similar description)
+4. Organize by severity:
    - **Critical Issues** (Confidence 90-100): Must be fixed
    - **Important Issues** (Confidence 80-89): Should be addressed
    - **Suggestions** (Confidence < 80): Nice to have improvements
 
-### Step 5: Present Findings Summary
+### Step 6: Present Findings Summary
+
 Display:
 ```
 ## Review Findings Summary
@@ -868,25 +1049,28 @@ Display:
 2. ...
 ```
 
-### Step 6: User Selection
+### Step 7: User Selection
+
 Use `AskUserQuestion` with `multiSelect: true` to let user choose which issues to address:
 - List each issue as a selectable option
 - Group by severity in the question
 - Include "Skip all - proceed to summary" as an option
 
-### Step 7: Apply Fixes
+### Step 8: Apply Fixes
+
 For each selected issue:
 1. Apply the fix
 2. Launch `test-runner` to verify ALL TDD tests still pass
 3. If any test fails: revert fix, inform user, skip that fix
 4. Mark REVIEW-NNN task complete in plan file
 
-### Step 8: Offer Re-review
+### Step 9: Offer Re-review
+
 If any fixes were applied, use `AskUserQuestion` to ask:
 - "Run review again to verify fixes?"
 - "Proceed to summary"
 
-If user chooses re-review, return to Step 2 with focused scope.
+If user chooses re-review, return to Step 1 with the same or different focus selection.
 
 **Output**: Quality-verified implementation with all tests passing
 
@@ -929,7 +1113,7 @@ If user chooses re-review, return to Step 2 with focused scope.
 
 ## Usage
 
-This workflow is invoked with `/tdd` followed by optional flags and a feature description:
+This workflow is invoked with `/tdd` followed by a feature description:
 
 ### Basic Usage
 ```
@@ -937,22 +1121,13 @@ This workflow is invoked with `/tdd` followed by optional flags and a feature de
 /tdd
 ```
 
-### With Agent Count Overrides
-```
-/tdd --planners=2 --reviewers=5 Implement payment processing
-/tdd --reviewers=1 Small utility function
-```
-
-### Flag Reference
-
-| Flag | Default | Range | Phase |
-|------|---------|-------|-------|
-| `--planners=N` | 1 | 1-3 | Phase 4: Test Planning |
-| `--reviewers=N` | 3 | 1-5 | Phase 8: Quality Review |
-
-**Note**: Exploration focuses (Phase 2) and architecture perspectives (Phase 5) are selected interactively.
-
 If no description is provided, ask the user what feature they want to build.
+
+**Note**: All agent selection phases are interactive:
+- Phase 2: Exploration focuses
+- Phase 4: Test focuses
+- Phase 5: Architecture perspectives
+- Phase 8: Review focuses
 
 ## When to Use This Workflow
 
