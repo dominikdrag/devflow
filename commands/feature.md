@@ -222,30 +222,78 @@ At the start, confirm the configuration:
 
 ## Phase 4: Architecture Design
 
-**Goal**: Design the implementation approach with explicit user selection
+**Goal**: Design the implementation approach with explicit user selection from distinct perspectives
 
 **Actions**:
-1. Launch {architects} `code-architect` agent(s) with different focuses:
-   - **If 1**: Single comprehensive architecture covering all aspects
-   - **If 2**: Split between (1) core implementation and (2) integration/edge cases
-   - **If 3+**: Distribute across core implementation, integration, and edge cases/error handling
-2. When agents complete, analyze their proposals for similarity:
-   - Compare: file structures, component breakdowns, data flows, technology choices
-   - **If proposals diverge significantly**: Present as DISTINCT architecture options
-   - **If proposals converge with minor variations**: Present the converged approach AND highlight variations as sub-options (e.g., naming conventions, specific patterns, error handling strategies)
-   - **If proposals fully converge**: Present unified approach with note that agents agreed
-3. Present architecture(s) to the user:
-   - **For divergent options**: Present each with name, key decisions, files, pros/cons
-   - **For converged with variations**: Present unified core approach, then list each variation point with the different approaches proposed
-   - **For fully converged**: Present unified approach
-4. Use `AskUserQuestion` tool to get EXPLICIT selection:
-   - **For divergent options**: Offer each architecture as a numbered option
-   - **For converged with variations**: Present the converged approach, then ask user to choose between the specific variation points (may require multiple questions)
+1. Launch {architects} `code-architect` agent(s) with assigned perspectives:
+   - **If 1**: Launch single agent with "Pragmatic Balance" perspective
+   - **If 2**: Launch two agents - "Minimal Changes" + "Clean Architecture" perspectives
+   - **If 3+**: Launch three agents - "Minimal Changes" + "Clean Architecture" + "Pragmatic Balance" perspectives
+
+   **Agent Prompt Format**: Include the perspective assignment in each agent's prompt:
+   > Your assigned perspective is: **[Perspective Name]**
+   >
+   > Design an architecture for: [feature description]
+   >
+   > Context from exploration: [key findings from Phase 2]
+   >
+   > Requirements clarified: [key clarifications from Phase 3]
+
+2. When agents complete, present ALL architecture proposals using this format:
+
+   ```
+   ### Architecture Options
+
+   #### Approach 1: Minimal Changes
+   **Philosophy**: Smallest change, maximum reuse of existing code
+
+   **Key Decisions**:
+   - [Decision 1]
+   - [Decision 2]
+   - [Decision 3]
+
+   **Files to Create/Modify**:
+   - `path/to/file.ts` - [purpose]
+   - `path/to/file2.ts` - [purpose]
+
+   **Pros**:
+   - [Pro 1]
+   - [Pro 2]
+   - [Pro 3]
+
+   **Cons**:
+   - [Con 1]
+   - [Con 2]
+   - [Con 3]
+
+   ---
+
+   #### Approach 2: Clean Architecture
+   **Philosophy**: Maintainability through elegant abstractions and separation of concerns
+
+   [Same structure as above]
+
+   ---
+
+   #### Approach 3: Pragmatic Balance
+   **Philosophy**: Balance between speed and quality - good boundaries without excessive overhead
+
+   [Same structure as above]
+
+   ---
+
+   ### Recommendation
+
+   **Approach [N]: [Name]** - [Brief rationale for why this is recommended given the specific context]
+   ```
+
+3. Use `AskUserQuestion` tool to get EXPLICIT selection:
+   - Offer each architecture as a numbered option
    - **ALWAYS** include "Custom: I'll describe my own approach" as final option
-5. If user selects custom approach:
+4. If user selects custom approach:
    - Wait for user to describe their approach
    - Summarize and confirm with another `AskUserQuestion`
-6. Document the selected architecture before proceeding
+5. Document the selected architecture before proceeding
 
 **CRITICAL**: Do NOT proceed to Phase 5 until user has made an explicit selection via `AskUserQuestion`. The response IS the approval gate.
 
