@@ -1,7 +1,7 @@
 ---
 description: Guided feature development with codebase understanding and architecture focus
 allowed-tools: Read, Write, Edit, Glob, Grep, LS, Bash, Agent, TodoWrite, AskUser
-argument-hint: [--explorers=N] [--architects=N] [--analyzers=N] [--reviewers=N] <feature-description>
+argument-hint: [--explorers=N] [--analyzers=N] [--reviewers=N] <feature-description>
 ---
 
 # Feature Development Workflow
@@ -96,7 +96,7 @@ Each phase stores structured outputs in `phaseHistory[].outputs`:
 | 1 | Discovery | `requirements[]`, `constraints[]` |
 | 2 | Codebase Exploration | `agentCount`, `keyFiles[]`, `patterns[]`, `integrationPoints[]` |
 | 3 | Clarifying Questions | `clarifications[]` (array of `{question, answer}`) |
-| 4 | Architecture Design | `agentCount`, `optionsPresented[]`, `selectedArchitecture`, `selectionRationale` |
+| 4 | Architecture Design | `perspectivesSelected[]`, `optionsPresented[]`, `selectedArchitecture`, `selectionRationale` |
 | 5 | Planning | `taskCount`, `testCount`, `reviewCount`, `planFile` |
 | 6 | Implementation | `tasksCompleted[]`, `tasksRemaining[]`, `filesModified[]` |
 | 7 | Testing | `testsWritten[]`, `testsPassing` |
@@ -125,7 +125,6 @@ Arguments: $ARGUMENTS
 
 Parse optional flags to configure agent counts:
 - `--explorers=N` - Number of `code-explorer` agents (default: 3)
-- `--architects=N` - Number of `code-architect` agents (default: 3)
 - `--analyzers=N` - Number of `test-analyzer` agents (default: 1)
 - `--reviewers=N` - Number of `code-reviewer` agents (default: 3)
 
@@ -136,7 +135,7 @@ Remaining text after flags is the feature description.
 ### Display Configuration
 
 At the start, confirm the configuration:
-> Using agent counts: {explorers} explorers, {architects} architects, {analyzers} analyzers, {reviewers} reviewers
+> Using agent counts: {explorers} explorers, {analyzers} analyzers, {reviewers} reviewers
 
 ---
 
@@ -222,82 +221,206 @@ At the start, confirm the configuration:
 
 ## Phase 4: Architecture Design
 
-**Goal**: Design the implementation approach with explicit user selection from distinct perspectives
+**Goal**: Design the implementation approach with user-selected perspectives
 
 **Actions**:
-1. Launch {architects} `code-architect` agent(s) with assigned perspectives:
-   - **If 1**: Launch single agent with "Pragmatic Balance" perspective
-   - **If 2**: Launch two agents - "Minimal Changes" + "Clean Architecture" perspectives
-   - **If 3+**: Launch three agents - "Minimal Changes" + "Clean Architecture" + "Pragmatic Balance" perspectives
 
-   **Agent Prompt Format**: Include the perspective assignment in each agent's prompt:
-   > Your assigned perspective is: **[Perspective Name]**
-   >
-   > Design an architecture for: [feature description]
-   >
-   > Context from exploration: [key findings from Phase 2]
-   >
-   > Requirements clarified: [key clarifications from Phase 3]
+### Step 1: Present Perspective Options
 
-2. When agents complete, present ALL architecture proposals using this format:
+Display available architecture perspectives for user selection:
 
-   ```
-   ### Architecture Options
+```
+## Architecture Design
 
-   #### Approach 1: Minimal Changes
-   **Philosophy**: Smallest change, maximum reuse of existing code
+Select which perspectives to explore. Each launches a parallel architect agent.
 
-   **Key Decisions**:
-   - [Decision 1]
-   - [Decision 2]
-   - [Decision 3]
+  Core Approaches (general-purpose)
+   1. Minimal Changes      - Smallest change, maximum reuse
+   2. Clean Architecture   - Elegant abstractions, separation of concerns
+   3. Pragmatic Balance    - Trade-off between speed and quality
 
-   **Files to Create/Modify**:
-   - `path/to/file.ts` - [purpose]
-   - `path/to/file2.ts` - [purpose]
+  Specialized Approaches (use when applicable)
+   4. Performance-First    - For: hot paths, high-throughput, latency-sensitive
+   5. Security-First       - For: auth, payments, PII, external APIs
+   6. Scalability-First    - For: >1000 concurrent users, distributed state
+   7. Testability-First    - For: complex business logic, financial calculations
+   8. Migration-Focused    - For: replacing existing features, gradual rollout
+   9. Domain-Driven        - For: complex domains, multiple subdomains
+  10. Event-Driven         - For: workflows, notifications, audit trails
 
-   **Pros**:
-   - [Pro 1]
-   - [Pro 2]
-   - [Pro 3]
+Enter selection (e.g., "1,3,5" or "1-3") [default: 1,2,3]:
+```
 
-   **Cons**:
-   - [Con 1]
-   - [Con 2]
-   - [Con 3]
+Wait for user input before proceeding.
 
-   ---
+### Step 2: Parse Selection
 
-   #### Approach 2: Clean Architecture
-   **Philosophy**: Maintainability through elegant abstractions and separation of concerns
+Accept input formats:
+- Comma-separated: `1,3,5`
+- Ranges: `1-3`
+- Mixed: `1-3,5,7`
+- Empty/Enter: Use default `1,2,3`
 
-   [Same structure as above]
+Validate: numbers 1-10 only, deduplicate, sort.
 
-   ---
+### Step 3: Launch Selected Architects
 
-   #### Approach 3: Pragmatic Balance
-   **Philosophy**: Balance between speed and quality - good boundaries without excessive overhead
+Launch one `code-architect` agent per selected perspective, all in parallel.
 
-   [Same structure as above]
+**Agent Prompt Format**: Include the perspective assignment in each agent's prompt:
+> Your assigned perspective is: **[Perspective Name]**
+>
+> [Include the FULL perspective definition from the reference below]
+>
+> Design an architecture for: [feature description]
+>
+> Context from exploration: [key findings from Phase 2]
+>
+> Requirements clarified: [key clarifications from Phase 3]
 
-   ---
+**Perspective Definitions** (inject the selected one into each agent prompt):
 
-   ### Recommendation
+1. **Minimal Changes**
+   - Philosophy: Smallest change, maximum reuse of existing code
+   - Extend existing components rather than creating new ones
+   - Reuse current patterns and abstractions
+   - Minimize file count and refactoring scope
+   - Prioritize speed and low risk over architectural purity
 
-   **Approach [N]: [Name]** - [Brief rationale for why this is recommended given the specific context]
-   ```
+2. **Clean Architecture**
+   - Philosophy: Maintainability through elegant abstractions and separation of concerns
+   - Create dedicated services/modules with clear interfaces
+   - Apply separation of concerns rigorously
+   - Use dependency injection and clear boundaries
+   - Prioritize testability and long-term maintainability over speed
 
-3. Use `AskUserQuestion` tool to get EXPLICIT selection:
-   - Offer each architecture as a numbered option
-   - **ALWAYS** include "Custom: I'll describe my own approach" as final option
-4. If user selects custom approach:
-   - Wait for user to describe their approach
-   - Summarize and confirm with another `AskUserQuestion`
-5. Document the selected architecture before proceeding
+3. **Pragmatic Balance**
+   - Philosophy: Balance between speed and quality - good boundaries without excessive overhead
+   - Create focused abstractions only where they add clear value
+   - Integrate with existing code through composition
+   - Apply clean architecture principles selectively
+   - Prioritize reasonable trade-offs between speed and maintainability
 
-**CRITICAL**: Do NOT proceed to Phase 5 until user has made an explicit selection via `AskUserQuestion`. The response IS the approval gate.
+4. **Performance-First**
+   - Philosophy: Optimize for speed and resource efficiency from the start
+   - When to use: Hot paths, high-throughput APIs, latency-sensitive operations, resource-constrained environments
+   - Profile-driven design decisions
+   - Minimize allocations, copies, and indirection
+   - Choose data structures for access patterns
+   - Consider cache locality and memory layout
+   - Prioritize hot path optimization over code elegance
+
+5. **Security-First**
+   - Philosophy: Threat modeling and principle of least privilege built into design
+   - When to use: Authentication, authorization, payment processing, PII handling, external API integrations
+   - Defense in depth at every layer
+   - Input validation at all boundaries
+   - Principle of least privilege for all components
+   - Secure defaults, explicit opt-in for dangerous operations
+   - Audit logging and traceability built-in
+
+6. **Scalability-First**
+   - Philosophy: Design for horizontal scaling and distributed systems
+   - When to use: Features expecting >1000 concurrent users, distributed state, multi-region deployments
+   - Stateless components where possible
+   - Eventual consistency where appropriate
+   - Design for partition tolerance
+   - Consider queue-based decoupling
+   - Plan for data sharding and replication
+
+7. **Testability-First**
+   - Philosophy: Design for easy testing through pure functions and dependency injection
+   - When to use: Complex business logic, financial calculations, rule engines, code requiring high correctness guarantees
+   - Pure functions with explicit inputs/outputs
+   - Dependency injection for all external services
+   - Clear seams for mocking and stubbing
+   - Separate side effects from business logic
+   - Design for deterministic, fast tests
+
+8. **Migration-Focused**
+   - Philosophy: Design for gradual adoption and rollout
+   - When to use: Replacing existing functionality, risky changes to critical paths, features needing A/B testing or gradual rollout
+   - Feature flags for incremental rollout
+   - Backwards compatibility with existing interfaces
+   - Parallel run capability for validation
+   - Fallback mechanisms for safe rollback
+   - Minimize blast radius of changes
+
+9. **Domain-Driven**
+   - Philosophy: Organize around business concepts and bounded contexts
+   - When to use: Complex business domains, features spanning multiple subdomains, systems requiring ubiquitous language alignment
+   - Identify and respect bounded contexts
+   - Use ubiquitous language from the domain
+   - Aggregate roots for consistency boundaries
+   - Domain events for cross-context communication
+   - Rich domain models over anemic data structures
+
+10. **Event-Driven**
+    - Philosophy: Async patterns, messaging, and loose coupling
+    - When to use: Workflows, notifications, audit trails, integrations with external systems, features requiring loose coupling
+    - Events as first-class citizens
+    - Publish-subscribe for loose coupling
+    - Event sourcing where audit trails matter
+    - Saga patterns for distributed transactions
+    - Design for eventual consistency and idempotency
+
+**WAIT for ALL agent results** - Do NOT proceed until every launched agent has returned.
+
+### Step 4: Present All Proposals
+
+When agents complete, present ALL architecture proposals using this format:
+
+```
+### Architecture Options
+
+#### Approach 1: [Perspective Name]
+**Philosophy**: [Perspective philosophy]
+
+**Key Decisions**:
+- [Decision 1]
+- [Decision 2]
+- [Decision 3]
+
+**Files to Create/Modify**:
+- `path/to/file.ts` - [purpose]
+- `path/to/file2.ts` - [purpose]
+
+**Pros**:
+- [Pro 1]
+- [Pro 2]
+- [Pro 3]
+
+**Cons**:
+- [Con 1]
+- [Con 2]
+- [Con 3]
+
+---
+
+[Repeat for each selected perspective]
+
+---
+
+### Recommendation
+
+**Approach [N]: [Name]** - [Brief rationale for why this is recommended given the specific context]
+```
 
 **IMPORTANT**: Present the FULL output from architecture agents to the user - do NOT summarize or condense their proposals. The user needs complete visibility into each architect's reasoning, trade-offs, and implementation details to make an informed decision. This is a key decision point requiring maximum user control.
+
+### Step 5: User Selection
+
+Use `AskUserQuestion` tool to get EXPLICIT selection:
+- Offer each architecture as a numbered option
+- **ALWAYS** include "Custom: I'll describe my own approach" as final option
+
+If user selects custom approach:
+- Wait for user to describe their approach
+- Summarize and confirm with another `AskUserQuestion`
+
+Document the selected architecture before proceeding.
+
+**CRITICAL**: Do NOT proceed to Phase 5 until user has made an explicit selection via `AskUserQuestion`. The response IS the approval gate.
 
 **Output**: User-selected architecture blueprint
 
@@ -709,9 +832,9 @@ This workflow is invoked with `/feature` followed by optional flags and a featur
 
 ### With Agent Count Overrides
 ```
-/feature --explorers=2 --architects=2 Add user authentication
+/feature --explorers=5 Add user authentication
 /feature --reviewers=5 Implement payment processing
-/feature --explorers=1 --architects=1 --reviewers=1 Small utility function
+/feature --explorers=1 --reviewers=1 Small utility function
 ```
 
 ### Flag Reference
@@ -719,9 +842,10 @@ This workflow is invoked with `/feature` followed by optional flags and a featur
 | Flag | Default | Range | Phase |
 |------|---------|-------|-------|
 | `--explorers=N` | 3 | 1-10 | Phase 2: Codebase Exploration |
-| `--architects=N` | 3 | 1-5 | Phase 4: Architecture Design |
 | `--analyzers=N` | 1 | 1-5 | Phase 7: Testing |
 | `--reviewers=N` | 3 | 1-5 | Phase 8: Quality Review |
+
+**Note**: Architecture perspectives are selected interactively at the start of Phase 4.
 
 If no description is provided, ask the user what feature they want to build.
 
