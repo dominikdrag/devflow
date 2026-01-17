@@ -1,7 +1,7 @@
 ---
 description: Guided feature development with codebase understanding and architecture focus
 allowed-tools: Read, Write, Edit, Glob, Grep, LS, Bash, Agent, TodoWrite, AskUser
-argument-hint: [--explorers=N] [--analyzers=N] [--reviewers=N] <feature-description>
+argument-hint: [--analyzers=N] [--reviewers=N] <feature-description>
 ---
 
 # Feature Development Workflow
@@ -94,7 +94,7 @@ Each phase stores structured outputs in `phaseHistory[].outputs`:
 | Phase | Name | Outputs |
 |-------|------|---------|
 | 1 | Discovery | `requirements[]`, `constraints[]` |
-| 2 | Codebase Exploration | `agentCount`, `keyFiles[]`, `patterns[]`, `integrationPoints[]` |
+| 2 | Codebase Exploration | `focusesSelected[]`, `keyFiles[]`, `patterns[]`, `integrationPoints[]` |
 | 3 | Clarifying Questions | `clarifications[]` (array of `{question, answer}`) |
 | 4 | Architecture Design | `perspectivesSelected[]`, `optionsPresented[]`, `selectedArchitecture`, `selectionRationale` |
 | 5 | Planning | `taskCount`, `testCount`, `reviewCount`, `planFile` |
@@ -124,18 +124,17 @@ At the END of each phase, update the state file:
 Arguments: $ARGUMENTS
 
 Parse optional flags to configure agent counts:
-- `--explorers=N` - Number of `code-explorer` agents (default: 3)
 - `--analyzers=N` - Number of `test-analyzer` agents (default: 1)
 - `--reviewers=N` - Number of `code-reviewer` agents (default: 3)
 
-Valid range: 1-10 for explorers, 1-5 for all others. If a value is out of range, use the closest value in range.
+Valid range: 1-5 for all flags. If a value is out of range, use the closest value in range.
 
 Remaining text after flags is the feature description.
 
 ### Display Configuration
 
 At the start, confirm the configuration:
-> Using agent counts: {explorers} explorers, {analyzers} analyzers, {reviewers} reviewers
+> Using agent counts: {analyzers} analyzers, {reviewers} reviewers
 
 ---
 
@@ -155,20 +154,119 @@ At the start, confirm the configuration:
 
 ## Phase 2: Codebase Exploration
 
-**Goal**: Understand existing patterns and relevant code
+**Goal**: Understand existing patterns and relevant code through focused exploration
 
 **Actions**:
-1. Launch {explorers} `code-explorer` agent(s) in parallel:
-   - **If 1**: Focus on primary integration points and similar features
-   - **If 2**: Split between (1) similar features and (2) integration points
-   - **If 3+**: Distribute across similar features, related subsystems, and integration points
-2. **WAIT for ALL agent results** - Do NOT proceed until every launched agent has returned
-3. Read the essential files identified by the agents
-4. Synthesize findings into a codebase understanding summary
+
+### Step 1: Present Exploration Focus Options
+
+Display available exploration focuses for user selection:
+
+```
+## Codebase Exploration
+
+Select which focuses to explore. Each launches a parallel explorer agent.
+
+  Core Focuses (recommended for most features)
+   1. Similar Features      - Existing features to use as templates, reusable patterns
+   2. Integration Points    - Where feature connects to existing systems, APIs, modules
+   3. Data Flow & State     - How data moves, storage interactions, state management
+
+  Specialized Focuses (use when relevant)
+   4. Entry Points          - API surfaces, UI components, CLI commands, event handlers
+   5. Patterns & Conventions - Design patterns, coding conventions, project structure
+   6. Error Handling        - Error paths, validation, edge cases, failure modes
+
+Enter selection (e.g., "1,2,3" or "1-3") [default: 1,2,3]:
+```
+
+Wait for user input before proceeding.
+
+### Step 2: Parse Selection
+
+Accept input formats:
+- Comma-separated: `1,2,3`
+- Ranges: `1-3`
+- Mixed: `1-3,5`
+- Empty/Enter: Use default `1,2,3`
+
+Validate: numbers 1-6 only, deduplicate, sort.
+
+### Step 3: Launch Selected Explorers
+
+Launch one `code-explorer` agent per selected focus, all in parallel.
+
+**Agent Prompt Format**: Include the focus assignment in each agent's prompt:
+> Your assigned exploration focus is: **[Focus Name]**
+>
+> [Include the FULL focus definition from the reference below]
+>
+> Explore the codebase for: [feature description]
+>
+> Requirements context: [key requirements from Phase 1]
+
+**Focus Definitions** (inject the selected one into each agent prompt):
+
+1. **Similar Features**
+   - Focus: Find existing features to use as implementation templates
+   - When to use: Most features - provides patterns and prior art
+   - Search for features with similar functionality or UX patterns
+   - Identify reusable components, utilities, and abstractions
+   - Document how similar features handle edge cases
+   - Note file organization and naming conventions used
+
+2. **Integration Points**
+   - Focus: Map where the feature connects to existing systems
+   - When to use: Features that interact with existing modules, APIs, or services
+   - Identify modules/services the feature will call or depend on
+   - Find existing APIs and interfaces to integrate with
+   - Document authentication, authorization, and data access patterns
+   - Note configuration and dependency injection patterns
+
+3. **Data Flow & State**
+   - Focus: Understand how data moves and is stored
+   - When to use: Features involving data persistence, caching, or state management
+   - Trace data from entry to storage and back
+   - Map database schemas, models, and repositories
+   - Identify caching layers and invalidation patterns
+   - Document state management approaches (stores, contexts, etc.)
+
+4. **Entry Points**
+   - Focus: Find where users/systems will trigger this feature
+   - When to use: Features with multiple entry points or complex routing
+   - Locate API endpoint definitions and routing
+   - Find UI component mounting and navigation
+   - Identify CLI command registration
+   - Map event handlers and message consumers
+
+5. **Patterns & Conventions**
+   - Focus: Understand project structure and coding standards
+   - When to use: Unfamiliar codebases or when conventions are unclear
+   - Read CLAUDE.md, style guides, and contributing docs
+   - Identify folder structure and file naming conventions
+   - Document common patterns (error handling, logging, testing)
+   - Note linting rules and code formatting standards
+
+6. **Error Handling**
+   - Focus: Map error paths and failure modes
+   - When to use: Critical features, payment flows, data mutations
+   - Identify error handling patterns in similar features
+   - Document validation approaches and error messages
+   - Find retry logic, fallbacks, and recovery patterns
+   - Note logging and monitoring for errors
+
+**WAIT for ALL agent results** - Do NOT proceed until every launched agent has returned.
+
+### Step 4: Synthesize Findings
+
+1. Read the essential files identified by all agents
+2. Combine findings into a unified codebase understanding
+3. Note any conflicts or inconsistencies between agent findings
+4. Prepare context summary for subsequent phases
 
 **CRITICAL**: You MUST wait for ALL exploration agents to return their complete output before proceeding to Phase 3. The exploration results are essential for asking informed clarifying questions. NEVER proceed to Phase 3 while agents are still running or before reviewing their findings.
 
-**Output**: Summary of relevant patterns, conventions, and integration points
+**Output**: Synthesized summary of patterns, conventions, and integration points from all exploration focuses
 
 ---
 
@@ -832,20 +930,18 @@ This workflow is invoked with `/feature` followed by optional flags and a featur
 
 ### With Agent Count Overrides
 ```
-/feature --explorers=5 Add user authentication
 /feature --reviewers=5 Implement payment processing
-/feature --explorers=1 --reviewers=1 Small utility function
+/feature --analyzers=2 --reviewers=1 Small utility function
 ```
 
 ### Flag Reference
 
 | Flag | Default | Range | Phase |
 |------|---------|-------|-------|
-| `--explorers=N` | 3 | 1-10 | Phase 2: Codebase Exploration |
 | `--analyzers=N` | 1 | 1-5 | Phase 7: Testing |
 | `--reviewers=N` | 3 | 1-5 | Phase 8: Quality Review |
 
-**Note**: Architecture perspectives are selected interactively at the start of Phase 4.
+**Note**: Exploration focuses (Phase 2) and architecture perspectives (Phase 4) are selected interactively.
 
 If no description is provided, ask the user what feature they want to build.
 
