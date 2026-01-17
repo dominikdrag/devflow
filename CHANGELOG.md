@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.3.0] - 2026-01-17
+
+### Changed
+- **All agent selection phases are now fully interactive** - removed all `--flags`
+  - Phase 2 (Exploration): Select from 6 exploration focuses
+  - Phase 4 (Architecture): Select from 10 architecture perspectives
+  - Phase 7 (Testing): Select from 6 test focuses
+  - Phase 8 (Quality Review): Select from 6 review focuses
+- `code-reviewer` agent is now focus-agnostic (receives focus via prompt)
+- `test-analyzer` agent is now focus-agnostic (receives focus via prompt)
+- `tdd-test-planner` agent is now focus-agnostic (receives focus via prompt)
+- Security focus in Phase 8 uses dedicated `security-auditor` agent
+
+### Removed
+- `--explorers`, `--architects`, `--analyzers`, `--planners`, `--reviewers` flags
+- Flag Reference tables from command documentation
+
 ## [2.2.4] - 2026-01-13
 
 ### Changed

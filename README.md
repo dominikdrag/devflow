@@ -36,35 +36,35 @@ Agents include enhanced descriptions for automatic triggering:
 
 ## Commands
 
-### `/feature [options] <feature-description>`
+### `/feature <feature-description>`
 
 Launches the guided 9-phase **implementation-first** workflow:
 
 1. **Discovery** - Understand requirements
-2. **Codebase Exploration** - Learn existing patterns with parallel explorer agents
+2. **Codebase Exploration** - Select exploration focuses (interactive), launch parallel agents
 3. **Clarifying Questions** - Iterative dialogue to resolve all ambiguities
-4. **Architecture Design** - Design approach with architect agents (user selects from options)
+4. **Architecture Design** - Select architecture perspectives (interactive), user selects from proposals
 5. **Planning** - Create implementation plan with task-level tracking (user approval required)
 6. **Implementation** - Build following approved plan, update task progress in plan file
-7. **Testing** - Launch test-analyzer to propose tests, get user approval, create TEST-NNN tasks in plan file, write tests, run with test-runner
-8. **Quality Review** - Review with parallel reviewer agents, reconcile findings with REVIEW-NNN tasks, present for user selection, update plan (+ optional security audit)
+7. **Testing** - Select test focuses (interactive), get user approval, create TEST-NNN tasks, write tests
+8. **Quality Review** - Select review focuses (interactive), present findings for user selection
 9. **Summary** - Document completion, clean up state file (plan file kept if incomplete)
 
-### `/tdd [options] <feature-description>`
+### `/tdd <feature-description>`
 
 Launches the guided 9-phase **test-first** TDD workflow:
 
 1. **Discovery** - Understand requirements
-2. **Codebase Exploration** - Learn existing patterns with parallel explorer agents
+2. **Codebase Exploration** - Select exploration focuses (interactive), launch parallel agents
 3. **Clarifying Questions** - Iterative dialogue to resolve all ambiguities
-4. **Test Planning** - Design tests from requirements with `tdd-test-planner` (user approval required)
-5. **Architecture Design** - Design code to pass planned tests (user selects from options)
+4. **Test Planning** - Select test focuses (interactive), design tests from requirements
+5. **Architecture Design** - Select architecture perspectives (interactive), design code to pass tests
 6. **Planning** - Create TDD task list with Red/Green/Refactor substeps (user approval required)
 7. **TDD Implementation** - Per-task Red-Green-Refactor cycles:
    - **RED**: Write failing test, verify it fails
    - **GREEN**: Write minimal code to pass (max 3 retries)
    - **REFACTOR**: Optional cleanup while keeping tests green
-8. **Quality Review** - Review with parallel reviewer agents (+ optional security audit)
+8. **Quality Review** - Select review focuses (interactive), present findings for user selection
 9. **Summary** - Document completion, report test coverage
 
 **Key Difference**: In TDD, tests are designed BEFORE architecture, and implementation is interleaved with testing per-task.
@@ -96,42 +96,53 @@ TDD tasks use a different structure with Red-Green-Refactor substeps:
 
 This separation ensures clear tracking and prevents scope creep between phases.
 
-## Configuration
+## Interactive Focus Selection
 
-### Agent Count Flags
+Both workflows use interactive menus for agent selection in key phases. You choose which focuses to explore, and each selection launches a parallel specialized agent.
 
-Control the number of agents launched per phase:
+### Exploration Focuses (Phase 2)
+| # | Focus | What it covers |
+|---|-------|----------------|
+| 1 | Similar Features | Existing features as templates, reusable patterns |
+| 2 | Integration Points | Where feature connects to existing systems |
+| 3 | Data Flow & State | How data moves, storage, state management |
+| 4 | Entry Points | API surfaces, UI components, CLI commands |
+| 5 | Patterns & Conventions | Design patterns, coding standards |
+| 6 | Error Handling | Error paths, validation, failure modes |
 
-#### `/feature` Flags
+### Architecture Perspectives (Phase 4/5)
+| # | Perspective | Philosophy |
+|---|-------------|------------|
+| 1 | Minimal Changes | Smallest change, maximum reuse |
+| 2 | Clean Architecture | Elegant abstractions, separation of concerns |
+| 3 | Pragmatic Balance | Trade-off between speed and quality |
+| 4 | Performance-First | Hot paths, latency-sensitive |
+| 5 | Security-First | Auth, payments, PII |
+| 6 | Scalability-First | >1000 concurrent users |
+| 7 | Testability-First | Complex business logic |
+| 8 | Migration-Focused | Replacing existing features |
+| 9 | Domain-Driven | Complex domains |
+| 10 | Event-Driven | Workflows, notifications |
 
-| Flag | Default | Range | Phase |
-|------|---------|-------|-------|
-| `--explorers=N` | 3 | 1-10 | Phase 2: Codebase Exploration |
-| `--architects=N` | 3 | 1-5 | Phase 4: Architecture Design |
-| `--analyzers=N` | 1 | 1-5 | Phase 7: Testing |
-| `--reviewers=N` | 3 | 1-5 | Phase 8: Quality Review |
+### Test Focuses (Phase 4 TDD / Phase 7 Feature)
+| # | Focus | What it covers |
+|---|-------|----------------|
+| 1 | Happy Path | Normal usage, core functionality |
+| 2 | Edge Cases | Boundaries, empty/null, max values |
+| 3 | Error Handling | Invalid inputs, exceptions |
+| 4 | Integration | External services, database, APIs |
+| 5 | State & Mutations | State management, data transformations |
+| 6 | Security | Auth, permissions, input safety |
 
-#### `/tdd` Flags
-
-| Flag | Default | Range | Phase |
-|------|---------|-------|-------|
-| `--explorers=N` | 3 | 1-10 | Phase 2: Codebase Exploration |
-| `--planners=N` | 1 | 1-3 | Phase 4: Test Planning |
-| `--architects=N` | 3 | 1-5 | Phase 5: Architecture Design |
-| `--reviewers=N` | 3 | 1-5 | Phase 8: Quality Review |
-
-### Examples
-
-```bash
-# /feature examples
-/feature --explorers=1 --architects=1 Add a utility function
-/feature --reviewers=5 Implement payment processing
-
-# /tdd examples
-/tdd Add user authentication with OAuth support
-/tdd --planners=2 --architects=2 Implement complex business logic
-/tdd --explorers=1 --architects=1 --reviewers=1 Small TDD feature
-```
+### Review Focuses (Phase 8)
+| # | Focus | Agent | What it covers |
+|---|-------|-------|----------------|
+| 1 | Correctness & Bugs | `code-reviewer` | Logic errors, null handling, race conditions |
+| 2 | Conventions & Style | `code-reviewer` | Project guidelines, naming, patterns |
+| 3 | Error Handling | `code-reviewer` | Missing catches, recovery, error messages |
+| 4 | Security | `security-auditor` | OWASP Top 10, threat modeling |
+| 5 | Performance | `code-reviewer` | Algorithms, memory, caching |
+| 6 | Maintainability | `code-reviewer` | Duplication, clarity, testability |
 
 ## Usage
 
