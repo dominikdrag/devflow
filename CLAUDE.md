@@ -22,7 +22,7 @@ devflow/
 │   ├── test-analyzer.md          # Opus - analyzes code, proposes test cases
 │   ├── test-runner.md            # Haiku - executes tests and reports results
 │   ├── tdd-test-planner.md       # Opus - designs tests from requirements (TDD)
-│   └── security-auditor.md       # Sonnet - OWASP Top 10 checks (optional)
+│   └── security-auditor.md       # Opus - OWASP Top 10 checks (optional)
 ├── commands/
 │   ├── feature.md                # Standard workflow command
 │   └── tdd.md                    # TDD workflow command
@@ -81,8 +81,8 @@ The plugin uses a `PreCompact` hook to persist workflow state before conversatio
 
 ## Key Design Decisions
 
-- Opus models used for architecture, code review, and test planning (higher reasoning quality)
-- Sonnet used for exploration and security auditing (cost efficiency for analysis tasks)
+- Opus models used for architecture, code review, test planning, and security auditing (higher reasoning quality for nuanced judgment)
+- Sonnet used for exploration (fast information gathering; synthesis done by main model)
 - Haiku used for test execution (fast, simple task)
 - Tests written directly (not by subagent) to preserve implementation context
 - Confidence thresholds: code-reviewer >= 80/100, security-auditor >= 85/100

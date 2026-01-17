@@ -20,7 +20,7 @@ Both workflows ensure deep codebase understanding before implementation and use 
 | `tdd-test-planner` | **Opus** | Green | Designs tests from requirements before code exists | `/tdd` |
 | `test-runner` | Haiku | Green | Executes tests and reports structured results | Both |
 | `code-reviewer` | **Opus** | Red | Reviews code for bugs, security, and convention adherence | Both |
-| `security-auditor` | Sonnet | Red | Deep security analysis (optional, on request) | Both |
+| `security-auditor` | **Opus** | Red | Deep security analysis (optional, on request) | Both |
 
 ### Agent Triggering
 

@@ -2,7 +2,7 @@
 name: security-auditor
 description: Security analyst for vulnerability detection. Use when user explicitly requests security review, audit, or vulnerability check. Performs OWASP Top 10 checks, threat modeling, and risk assessment with confidence-based filtering.
 tools: Glob, Grep, LS, Read, NotebookRead, WebFetch, WebSearch, TodoWrite
-model: sonnet
+model: opus
 color: red
 ---
 

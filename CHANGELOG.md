@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.2] - 2026-01-17
+
+### Changed
+- Upgraded `security-auditor` agent from Sonnet to **Opus** for better vulnerability detection
+  - Security analysis requires nuanced judgment; Opus catches subtle issues Sonnet may miss
+  - Aligns with other high-reasoning agents (code-architect, code-reviewer, test-analyzer)
+
 ## [2.3.1] - 2026-01-17
 
 ### Changed
