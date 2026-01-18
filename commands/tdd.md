@@ -602,6 +602,11 @@ When agents complete, present ALL architecture proposals using this format:
 #### Approach 1: [Perspective Name]
 **Philosophy**: [Perspective philosophy]
 
+**Architecture Diagram**:
+```
+[ASCII diagram from agent output showing components and dependencies]
+```
+
 **Key Decisions**:
 - [Decision 1]
 - [Decision 2]

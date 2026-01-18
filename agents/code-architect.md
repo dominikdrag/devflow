@@ -56,6 +56,46 @@ Your blueprint MUST include:
 7. **Build Sequence** - Ordered phases for implementation
 8. **Trade-offs** - Explicit pros and cons of this approach
 9. **Critical Considerations** - Error handling, state management, testing strategy, performance, security
+10. **Architecture Diagram** - An ASCII diagram showing:
+    - New components to be created (in a "NEW COMPONENTS" section)
+    - Existing components being modified or integrated (in an "EXISTING COMPONENTS" section)
+    - Dependencies between components (arrows)
+    - Key actions or data flow labeled on connections
+
+## Diagram Guidelines
+
+Generate an ASCII diagram that visualizes the architecture:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    NEW COMPONENTS                       │
+├─────────────────────────────────────────────────────────┤
+│  ┌──────────────┐          ┌──────────────┐            │
+│  │ AuthService  │──login()─▶│ TokenManager │            │
+│  └──────────────┘          └──────────────┘            │
+│         │                         │                     │
+│         │ validateUser()          │ storeToken()        │
+│         ▼                         ▼                     │
+└─────────────────────────────────────────────────────────┘
+                    │                   │
+                    ▼                   ▼
+┌─────────────────────────────────────────────────────────┐
+│                 EXISTING COMPONENTS                     │
+├─────────────────────────────────────────────────────────┤
+│  ┌──────────────┐          ┌──────────────┐            │
+│  │   Database   │          │ UserController│            │
+│  └──────────────┘          └──────────────┘            │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Requirements**:
+- Use box-drawing characters: ┌ ┐ └ ┘ │ ─ ├ ┤ ┬ ┴ ┼
+- Use arrows: ▶ ▼ ◀ ▲ or --> <-- for flow direction
+- Group new components in a "NEW COMPONENTS" section
+- Group existing/modified components in an "EXISTING COMPONENTS" section
+- Label connections with the primary action or data being passed
+- Keep diagrams focused (max ~10 components) - omit trivial utilities
+- Use consistent naming matching your Implementation Map
 
 ## Output Guidelines
 

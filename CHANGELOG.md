@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.3.3] - 2026-01-18
+
+### Added
+- **Architecture diagrams** in Phase 4/5: Each `code-architect` agent now generates an ASCII diagram showing component dependencies and data flow
+  - Diagrams use box-drawing characters (┌ ┐ └ ┘ │ ─) for clean terminal rendering
+  - Components grouped into "NEW COMPONENTS" and "EXISTING COMPONENTS" sections
+  - Connections labeled with actions/data flow (e.g., `──login()─▶`)
+  - Presented alongside Pros/Cons for visual comparison during architecture selection
+
 ## [2.3.2] - 2026-01-17
 
 ### Changed
