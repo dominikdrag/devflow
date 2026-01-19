@@ -502,17 +502,21 @@ When agents complete, present ALL architecture proposals using this format:
 
 ### Step 5: User Selection
 
-Use `AskUserQuestion` tool to get EXPLICIT selection:
-- Offer each architecture as a numbered option
-- **ALWAYS** include "Custom: I'll describe my own approach" as final option
+Ask the user to select an architecture by typing their choice:
 
-If user selects custom approach:
-- Wait for user to describe their approach
-- Summarize and confirm with another `AskUserQuestion`
+```
+Which architecture do you want to use?
+
+Enter a number (1-N), or type "custom" to describe your own approach:
+```
+
+Wait for user response. Parse their input:
+- If a number: select that architecture
+- If "custom": wait for user to describe their approach, then summarize and confirm
 
 Document the selected architecture before proceeding.
 
-**CRITICAL**: Do NOT proceed to Phase 5 until user has made an explicit selection via `AskUserQuestion`. The response IS the approval gate.
+**CRITICAL**: Do NOT proceed to Phase 5 until user has typed their selection. The response IS the approval gate.
 
 **Output**: User-selected architecture blueprint
 
@@ -679,19 +683,22 @@ Document the selected architecture before proceeding.
 
 **IMPORTANT**: Present the FULL plan to the user - do NOT summarize or condense. The user needs complete visibility into every task, its dependencies, and acceptance criteria to make an informed approval decision. This is a key decision point requiring maximum user control.
 
-6. **Plan Approval**: Use `AskUserQuestion` with options:
-   - "Proceed with this plan"
-   - "Modify the plan" (user describes changes)
-   - "Add more tasks"
+6. **Plan Approval**: Ask the user to approve the plan:
 
-7. If user selects "Modify the plan" or "Add more tasks":
-   - Wait for user input
+```
+How would you like to proceed?
+
+Type: "proceed" to approve, "modify" to request changes, or "add" to add more tasks:
+```
+
+7. If user types "modify" or "add":
+   - Wait for user to describe changes
    - Update the plan file accordingly
-   - Re-present summary and ask again
+   - Re-present plan and ask again
 
 8. **Finalize**: Add approval timestamp to progress log
 
-**CRITICAL**: Do NOT proceed to Phase 6 until user explicitly approves the plan via `AskUserQuestion`.
+**CRITICAL**: Do NOT proceed to Phase 6 until user types "proceed".
 
 **Output**: `claude-tmp/devflow-plan.md` file ready to guide implementation
 
@@ -704,8 +711,8 @@ Document the selected architecture before proceeding.
 **Scope**: This phase works ONLY on `TASK-NNN` implementation tasks. Testing tasks (`TEST-NNN`) and review tasks (`REVIEW-NNN`) are handled in their respective phases.
 
 **CRITICAL GATES** (verify before ANY implementation):
-- [ ] Architecture selected via `AskUserQuestion` in Phase 4
-- [ ] Plan approved via `AskUserQuestion` in Phase 5
+- [ ] Architecture selected in Phase 4 (user typed their choice)
+- [ ] Plan approved in Phase 5 (user typed "proceed")
 
 If either gate is missing, STOP and complete the required phase first.
 
@@ -849,10 +856,14 @@ Launch one `test-analyzer` agent per selected focus, all in parallel.
 ### Step 4: Present and Approve Test Plan
 
 1. Present the FULL output from all test-analyzer agents - do NOT summarize
-2. Use `AskUserQuestion` to get EXPLICIT confirmation:
-   - Option 1: "Proceed with proposed testing strategy"
-   - Option 2: "Modify testing scope" (user describes changes)
-   - Option 3: "Skip testing phase"
+
+2. Ask the user to approve the test plan:
+
+```
+How would you like to proceed with testing?
+
+Type: "proceed" to approve, "modify" to change scope, or "skip" to skip testing:
+```
 
 **IMPORTANT**: Present the FULL output from all test-analyzer agents to the user - do NOT summarize or condense. The user needs complete visibility into each proposed test case to make an informed decision.
 
@@ -882,7 +893,7 @@ For each TEST-NNN task in the updated plan:
    - Re-run until all pass
 3. When all pass: Add `| [timestamp] | Testing phase completed |`
 
-**CRITICAL**: Do NOT write tests until user has approved the testing strategy via `AskUserQuestion`.
+**CRITICAL**: Do NOT write tests until user has typed "proceed" to approve the testing strategy.
 
 **Test Quality Standards**:
 - Test names clearly describe what is being tested
@@ -1049,10 +1060,15 @@ Display:
 
 ### Step 7: User Selection
 
-Use `AskUserQuestion` with `multiSelect: true` to let user choose which issues/tasks to address:
-- List each issue as a selectable option
-- Group by severity in the question
-- Include "Skip all - proceed to summary" as an option
+Ask the user which issues to fix:
+
+```
+Which issues should I fix?
+
+Enter numbers separated by commas (e.g., "1,3,5"), "all" to fix everything, or "skip" to proceed to summary:
+```
+
+Wait for user response and parse their input.
 
 ### Step 8: Update Plan File
 
@@ -1073,11 +1089,15 @@ For each selected REVIEW-NNN task in the updated plan:
 
 ### Step 10: Offer Re-review
 
-If any fixes were applied, use `AskUserQuestion` to ask:
-- "Run review again to verify fixes?"
-- "Proceed to summary"
+If any fixes were applied, ask:
 
-If user chooses re-review, return to Step 1 with the same or different focus selection.
+```
+Fixes applied. Would you like to re-run the review to verify?
+
+Type: "review" to run again, or "proceed" to continue to summary:
+```
+
+If user types "review", return to Step 1 with the same or different focus selection.
 
 **Plan File Updates Summary**:
 - At phase start: Add `| [timestamp] | Quality review initiated |` to progress log

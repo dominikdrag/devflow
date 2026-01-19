@@ -74,7 +74,7 @@ Launches the guided 9-phase **test-first** TDD workflow:
 The plugin includes gates that enforce the development workflow:
 
 - **Exploration Completion Gate**: Phase 3 (Clarifying Questions) cannot begin until ALL exploration agents have returned their complete output
-- **Architecture Selection Gate**: Planning phase cannot begin until user explicitly selects an architecture via `AskUserQuestion` (or provides their own approach)
+- **Architecture Selection Gate**: Planning phase cannot begin until user explicitly types their architecture selection (or describes their own approach)
 - **Planning Approval Gate**: Implementation cannot begin until user explicitly approves the implementation plan
 - **Quality Review Gate**: Fixes are not applied until user reviews consolidated findings and explicitly selects which issues to address
 
@@ -98,7 +98,7 @@ This separation ensures clear tracking and prevents scope creep between phases.
 
 ## Interactive Focus Selection
 
-Both workflows use interactive menus for agent selection in key phases. You choose which focuses to explore, and each selection launches a parallel specialized agent.
+Both workflows prompt you to type your choices in key phases. You type which focuses to explore (e.g., "1,2,3" or "1-3"), and each selection launches a parallel specialized agent.
 
 ### Exploration Focuses (Phase 2)
 | # | Focus | What it covers |

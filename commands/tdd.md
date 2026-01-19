@@ -425,17 +425,23 @@ Launch one `tdd-test-planner` agent per selected focus, all in parallel.
 ### Step 4: Present and Approve Test Plan
 
 1. Present the FULL test design output from all agents - do NOT summarize
-2. Use `AskUserQuestion` with options:
-   - "Proceed with this test plan"
-   - "Modify test plan" (user describes changes)
-   - "Add more test cases"
-3. If user selects modification:
-   - Wait for user input
+
+2. Ask the user to approve the test plan:
+
+```
+How would you like to proceed with the test plan?
+
+Type: "proceed" to approve, "modify" to request changes, or "add" to add more test cases:
+```
+
+3. If user types "modify" or "add":
+   - Wait for user to describe changes
    - Update the test plan accordingly
    - Re-present and ask again
+
 4. Store approved test plan in state file: `decisions.testPlan`
 
-**CRITICAL**: Do NOT proceed to Phase 5 until user has explicitly approved the test plan via `AskUserQuestion`. The response IS the approval gate.
+**CRITICAL**: Do NOT proceed to Phase 5 until user types "proceed". The response IS the approval gate.
 
 **IMPORTANT**: Present the FULL output from all tdd-test-planner agents to the user - do NOT summarize or condense. The user needs complete visibility into each proposed test case to make an informed decision.
 
@@ -641,17 +647,21 @@ When agents complete, present ALL architecture proposals using this format:
 
 ### Step 5: User Selection
 
-Use `AskUserQuestion` tool to get EXPLICIT selection:
-- Offer each architecture as a numbered option
-- **ALWAYS** include "Custom: I'll describe my own approach" as final option
+Ask the user to select an architecture by typing their choice:
 
-If user selects custom approach:
-- Wait for user to describe their approach
-- Summarize and confirm with another `AskUserQuestion`
+```
+Which architecture do you want to use?
+
+Enter a number (1-N), or type "custom" to describe your own approach:
+```
+
+Wait for user response. Parse their input:
+- If a number: select that architecture
+- If "custom": wait for user to describe their approach, then summarize and confirm
 
 Document the selected architecture before proceeding.
 
-**CRITICAL**: Do NOT proceed to Phase 6 until user has made an explicit selection via `AskUserQuestion`. The response IS the approval gate.
+**CRITICAL**: Do NOT proceed to Phase 6 until user has typed their selection. The response IS the approval gate.
 
 **Output**: User-selected architecture blueprint designed to pass the approved tests
 
@@ -832,19 +842,22 @@ Document the selected architecture before proceeding.
 
 **IMPORTANT**: Present the FULL plan to the user - do NOT summarize or condense. The user needs complete visibility into every task, its test specifications, and acceptance criteria to make an informed approval decision.
 
-6. **Plan Approval**: Use `AskUserQuestion` with options:
-   - "Proceed with this plan"
-   - "Modify the plan" (user describes changes)
-   - "Add more tasks"
+6. **Plan Approval**: Ask the user to approve the plan:
 
-7. If user selects "Modify the plan" or "Add more tasks":
-   - Wait for user input
+```
+How would you like to proceed?
+
+Type: "proceed" to approve, "modify" to request changes, or "add" to add more tasks:
+```
+
+7. If user types "modify" or "add":
+   - Wait for user to describe changes
    - Update the plan file accordingly
-   - Re-present summary and ask again
+   - Re-present plan and ask again
 
 8. **Finalize**: Add approval timestamp to progress log
 
-**CRITICAL**: Do NOT proceed to Phase 7 until user explicitly approves the plan via `AskUserQuestion`.
+**CRITICAL**: Do NOT proceed to Phase 7 until user types "proceed".
 
 **Output**: `claude-tmp/tdd-plan.md` file ready to guide TDD implementation
 
@@ -855,9 +868,9 @@ Document the selected architecture before proceeding.
 **Goal**: Build the feature using Red-Green-Refactor for each task
 
 **CRITICAL GATES** (verify before ANY implementation):
-- [ ] Test plan approved via `AskUserQuestion` in Phase 4
-- [ ] Architecture selected via `AskUserQuestion` in Phase 5
-- [ ] Plan approved via `AskUserQuestion` in Phase 6
+- [ ] Test plan approved in Phase 4 (user typed "proceed")
+- [ ] Architecture selected in Phase 5 (user typed their choice)
+- [ ] Plan approved in Phase 6 (user typed "proceed")
 
 If any gate is missing, STOP and complete the required phase first.
 
@@ -871,11 +884,13 @@ If any gate is missing, STOP and complete the required phase first.
 4. Launch `test-runner` agent to verify test FAILS
 5. **If test passes** (should not happen in RED):
    - This means the test is not testing new behavior
-   - Inform user: "Test passed but should fail in RED phase - test may not be verifying new behavior"
-   - Use `AskUserQuestion`:
-     - "Revise the test to properly fail"
-     - "Continue anyway (test already passes)"
-   - If revise: update test and re-run
+   - Ask user:
+     ```
+     Test passed but should fail in RED phase - test may not be verifying new behavior.
+
+     Type: "revise" to update the test, or "continue" to proceed anyway:
+     ```
+   - If "revise": update test and re-run
 6. When test fails correctly:
    - Update plan: Mark `[x] TDD-NNN-RED`, add `Completed: [timestamp]`
    - Add progress log entry: `| [timestamp] | TDD-NNN | RED | Tests written (failing) |`
@@ -890,11 +905,12 @@ If any gate is missing, STOP and complete the required phase first.
    - Log error to `state.currentTask.errors[]`
    - **If attempts <= 3**: Analyze failure, fix implementation, retry
    - **If attempts > 3**: Mark task as BLOCKED
-     - Use `AskUserQuestion`:
-       - "Debug manually and retry" - Pause for user investigation
-       - "Skip this task and continue" - Mark incomplete, proceed
-       - "Abort TDD workflow" - Clean termination
-       - "Modify the test" - Return to RED (breaks TDD discipline)
+     - Ask user:
+       ```
+       Task blocked after 3 failed attempts.
+
+       Type: "debug" to pause for manual investigation, "skip" to continue to next task, "abort" to end workflow, or "modify" to change the test:
+       ```
      - Log: `| [timestamp] | TDD-NNN | GREEN | BLOCKED after 3 attempts |`
 5. When test passes:
    - Update plan: Mark `[x] TDD-NNN-GREEN`, add `Completed: [timestamp]`
@@ -903,18 +919,23 @@ If any gate is missing, STOP and complete the required phase first.
 ### Step 7.3: REFACTOR (Optional)
 
 1. Update state: `currentTask.substep: "refactor"`
-2. Use `AskUserQuestion`:
-   - "Refactor this implementation" - Apply cleanup
-   - "Skip refactoring, continue to next task" - Mark complete, move on
-   - "Review code before deciding" - Show implementation for review
-3. **If user chooses refactor**:
+2. Ask user:
+   ```
+   Refactoring opportunity. What would you like to do?
+
+   Type: "refactor" to apply cleanup, "skip" to continue to next task, or "review" to see code first:
+   ```
+3. **If user types "refactor"**:
    - Apply improvements (no behavior change - tests must stay green)
    - Launch `test-runner` to run ALL TDD tests (not just current task)
    - **If any test fails** (regression):
      - Inform user which test failed
-     - Use `AskUserQuestion`:
-       - "Revert refactoring" - Undo changes, mark skipped
-       - "Fix the regression" - Attempt fix (max 2 attempts)
+     - Ask user:
+       ```
+       Refactoring caused a test regression.
+
+       Type: "revert" to undo changes, or "fix" to attempt repair (max 2 attempts):
+       ```
      - If regression persists after 2 attempts, force revert
    - When all tests pass:
      - Update plan: Mark `[x] TDD-NNN-REFACTOR`, add `Completed: [timestamp]`
@@ -1084,10 +1105,15 @@ Display:
 
 ### Step 7: User Selection
 
-Use `AskUserQuestion` with `multiSelect: true` to let user choose which issues to address:
-- List each issue as a selectable option
-- Group by severity in the question
-- Include "Skip all - proceed to summary" as an option
+Ask the user which issues to fix:
+
+```
+Which issues should I fix?
+
+Enter numbers separated by commas (e.g., "1,3,5"), "all" to fix everything, or "skip" to proceed to summary:
+```
+
+Wait for user response and parse their input.
 
 ### Step 8: Apply Fixes
 
@@ -1099,11 +1125,15 @@ For each selected issue:
 
 ### Step 9: Offer Re-review
 
-If any fixes were applied, use `AskUserQuestion` to ask:
-- "Run review again to verify fixes?"
-- "Proceed to summary"
+If any fixes were applied, ask:
 
-If user chooses re-review, return to Step 1 with the same or different focus selection.
+```
+Fixes applied. Would you like to re-run the review to verify?
+
+Type: "review" to run again, or "proceed" to continue to summary:
+```
+
+If user types "review", return to Step 1 with the same or different focus selection.
 
 **Output**: Quality-verified implementation with all tests passing
 

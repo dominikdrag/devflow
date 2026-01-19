@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.5] - 2026-01-19
+
+### Changed
+- Replaced `AskUserQuestion` tool with plain text prompts throughout workflow
+  - User now types responses directly (e.g., "1", "proceed", "1,3,5") instead of selecting from UI options
+  - Applies to: architecture selection, plan approval, test approval, review issue selection, TDD decision points
+
 ## [2.3.4] - 2026-01-19
 
 ### Changed

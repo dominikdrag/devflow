@@ -55,7 +55,7 @@ The plugin uses a `PreCompact` hook to persist workflow state before conversatio
 1. Discovery - Understand requirements
 2. Codebase Exploration - Launch 3 parallel `code-explorer` agents
 3. Clarifying Questions - Resolve ambiguities
-4. Architecture Design - Launch 3 `code-architect` agents, present options via `AskUserQuestion`
+4. Architecture Design - Launch 3 `code-architect` agents, user types selection
 5. Planning - Create implementation plan with task-level tracking (`claude-tmp/devflow-plan.md`)
 6. Implementation - Build following approved plan, update task progress
 7. Testing - Launch `test-analyzer` agent for proposals, then write tests directly (preserves context)
