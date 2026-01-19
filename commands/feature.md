@@ -599,16 +599,44 @@ Document the selected architecture before proceeding.
    ## Phase 4: Architecture Design
 
    ### Options Considered
-   [Full description of ALL architecture options that were presented to the user]
+   [Brief description of each architecture option presented, with perspective name]
 
-   ### Selected Architecture
-   **Choice**: [Selected option name]
+   ### Selected Architecture: [Perspective Name]
 
-   **Rationale**: [Complete rationale for why this was chosen]
+   **Philosophy**: [How the perspective shapes this design]
 
-   **Key Decisions**:
-   - [Decision 1 with full context]
-   - [Decision 2 with full context]
+   **Architecture Diagram**:
+   ```
+   [ASCII diagram from the selected architecture showing NEW and EXISTING components]
+   ```
+
+   **Discovered Patterns**:
+   - [Pattern from CLAUDE.md/style guides with file:line reference]
+   - [Existing convention with code reference]
+
+   **Architecture Decision**: [The approach with clear rationale]
+
+   **Component Design**:
+   | Component | Responsibility | Dependencies | Interface |
+   |-----------|----------------|--------------|-----------|
+   | [Name] | [What it does] | [What it needs] | [Public API] |
+
+   **Data Flow**: [How information moves through the system]
+
+   **Build Sequence**:
+   1. [Phase 1 - what to build first and why]
+   2. [Phase 2 - what comes next]
+
+   **Trade-offs**:
+   - **Pros**: [advantages of this approach]
+   - **Cons**: [disadvantages/risks]
+
+   **Critical Considerations**:
+   - **Error Handling**: [approach]
+   - **State Management**: [approach]
+   - **Testing Strategy**: [approach]
+   - **Performance**: [considerations]
+   - **Security**: [considerations]
 
    **Files to Create/Modify**:
    - `path/to/new/file.ts` - [purpose and what it will contain]

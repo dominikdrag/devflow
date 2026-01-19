@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.3.4] - 2026-01-19
+
+### Changed
+- Plan file now includes **full selected architecture** from Phase 4/5
+  - Previously only captured: choice name, rationale, key decisions, files to modify
+  - Now includes all 10 code-architect deliverables: philosophy, architecture diagram, discovered patterns, architecture decision, component design (table), data flow, build sequence, trade-offs (pros/cons), critical considerations, files to modify
+  - Provides complete implementation context in plan file for better workflow resumption
+
 ## [2.3.3] - 2026-01-18
 
 ### Added
