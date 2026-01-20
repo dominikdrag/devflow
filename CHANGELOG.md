@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.3.6] - 2026-01-20
+
+### Added
+- **`/code-review` command** - Standalone code review extracted from `/feature` and `/tdd` workflows
+  - Flexible file targeting: `--staged` (default), `--unstaged`, `--pr N`, `--commit HASH`, or explicit file paths
+  - Same 6 review focuses as Phase 8: Correctness, Conventions, Error Handling, Security, Performance, Maintainability
+  - Launches parallel `code-reviewer` agents (focuses 1,2,3,5,6) or `security-auditor` (focus 4)
+  - Confidence-based filtering: >=80% for code-reviewer, >=85% for security-auditor
+  - Interactive fix selection: choose specific issues, "critical" only, "all", or "skip"
+  - Re-review capability to verify fixes
+  - Lightweight state file (`claude-tmp/code-review-state.json`) for session tracking
+
 ## [2.3.5] - 2026-01-19
 
 ### Changed

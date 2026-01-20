@@ -4,23 +4,24 @@ Comprehensive feature development workflows with specialized agents for codebase
 
 ## Overview
 
-This plugin provides two development workflow commands:
+This plugin provides three development workflow commands:
 - **`/feature`** - 9-phase implementation-first workflow
 - **`/tdd`** - 9-phase Test-Driven Development workflow with Red-Green-Refactor cycles
+- **`/code-review`** - Standalone code review with parallel agents and confidence-based filtering
 
-Both workflows ensure deep codebase understanding before implementation and use specialized agents powered by different models for optimal results.
+The full workflows ensure deep codebase understanding before implementation. All commands use specialized agents powered by different models for optimal results.
 
 ## Agents
 
 | Agent | Model | Color | Purpose | Used By |
 |-------|-------|-------|---------|---------|
-| `code-explorer` | Sonnet | Yellow | Analyzes codebase, traces execution paths, maps architecture | Both |
-| `code-architect` | **Opus** | Yellow | Designs feature architectures with comprehensive blueprints | Both |
+| `code-explorer` | Sonnet | Yellow | Analyzes codebase, traces execution paths, maps architecture | `/feature`, `/tdd` |
+| `code-architect` | **Opus** | Yellow | Designs feature architectures with comprehensive blueprints | `/feature`, `/tdd` |
 | `test-analyzer` | **Opus** | Green | Analyzes existing code and proposes test plans | `/feature` |
 | `tdd-test-planner` | **Opus** | Green | Designs tests from requirements before code exists | `/tdd` |
-| `test-runner` | Haiku | Green | Executes tests and reports structured results | Both |
-| `code-reviewer` | **Opus** | Red | Reviews code for bugs, security, and convention adherence | Both |
-| `security-auditor` | **Opus** | Red | Deep security analysis (optional, on request) | Both |
+| `test-runner` | Haiku | Green | Executes tests and reports structured results | `/feature`, `/tdd` |
+| `code-reviewer` | **Opus** | Red | Reviews code for bugs, security, and convention adherence | All |
+| `security-auditor` | **Opus** | Red | Deep security analysis (optional, on request) | All |
 
 ### Agent Triggering
 
@@ -68,6 +69,27 @@ Launches the guided 9-phase **test-first** TDD workflow:
 9. **Summary** - Document completion, report test coverage
 
 **Key Difference**: In TDD, tests are designed BEFORE architecture, and implementation is interleaved with testing per-task.
+
+### `/code-review [options]`
+
+Standalone code review using the same agents and focuses as Phase 8 of the full workflows.
+
+**File targeting options:**
+- `--staged` (default) - Review staged git changes
+- `--unstaged` - Review unstaged working directory changes
+- `--pr N` - Review changes in pull request #N
+- `--commit HASH` - Review a specific commit
+- Explicit file paths - Review specific files
+
+**Flow:**
+1. **Target Identification** - Parse arguments, determine files to review
+2. **Focus Selection** - Choose from 6 review focuses (same as Phase 8)
+3. **Launch Agents** - Parallel agents based on selected focuses
+4. **Present Findings** - Full agent output, organized by severity
+5. **Fix Selection** - Choose issues to fix: numbers, "critical", "all", or "skip"
+6. **Apply Fixes** - Execute selected fixes
+7. **Re-review Option** - Optionally re-run to verify fixes
+8. **Summary** - Final stats and cleanup
 
 ## Workflow Enforcement
 
@@ -154,6 +176,13 @@ Both workflows prompt you to type your choices in key phases. You type which foc
 # /tdd - test first
 /tdd Add user authentication with OAuth support
 /tdd  # interactive mode
+
+# /code-review - standalone review
+/code-review              # review staged changes (default)
+/code-review --unstaged   # review working directory changes
+/code-review --pr 123     # review pull request
+/code-review --commit abc # review specific commit
+/code-review src/auth.ts  # review specific files
 ```
 
 ## When to Use
@@ -170,7 +199,13 @@ Both workflows prompt you to type your choices in key phases. You type which foc
 - Features with well-defined acceptance criteria
 - When you want comprehensive test coverage as a natural byproduct
 
-### Skip both for:
+### Use `/code-review` for:
+- Quick code review without full workflow overhead
+- Reviewing PRs or commits before merge
+- Spot-checking staged changes before commit
+- Security audits on specific files
+
+### Skip workflows for:
 - Single-line bug fixes
 - Trivial, obvious changes
 - Urgent hotfixes
