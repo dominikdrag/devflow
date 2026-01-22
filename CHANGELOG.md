@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.3.7] - 2026-01-22
+
+### Added
+- **`/architect` command** - Standalone architecture design extracted from `/feature` and `/tdd` workflows
+  - Phase 1: Discovery - understand requirements
+  - Phase 2: Codebase Exploration - select from 6 focuses, launch parallel `code-explorer` agents
+  - Phase 3: Clarifying Questions - iterative dialogue to resolve ambiguities
+  - Phase 4: Perspective Selection - choose from 10 architecture perspectives
+  - Phase 5: Launch Architects - parallel `code-architect` agents with perspective injection
+  - Phase 6: Present Proposals - full agent output with ASCII diagrams, user selects architecture
+  - Phase 7: Summary - document selected architecture, suggest next steps
+  - Lightweight state file (`claude-tmp/architect-state.json`) for session tracking
+
 ## [2.3.6] - 2026-01-20
 
 ### Added

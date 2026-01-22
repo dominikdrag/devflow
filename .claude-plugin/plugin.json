@@ -1,7 +1,7 @@
 {
   "name": "devflow",
-  "version": "2.3.6",
-  "description": "Feature development workflows (/feature, /tdd, /code-review) with specialized agents for codebase exploration, architecture design, test planning, security auditing, and quality review.",
+  "version": "2.3.7",
+  "description": "Feature development workflows (/feature, /tdd, /architect, /code-review) with specialized agents for codebase exploration, architecture design, test planning, security auditing, and quality review.",
   "author": {
     "name": "Dominik Drag"
   }

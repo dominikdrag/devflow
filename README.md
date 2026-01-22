@@ -4,9 +4,10 @@ Comprehensive feature development workflows with specialized agents for codebase
 
 ## Overview
 
-This plugin provides three development workflow commands:
+This plugin provides four development workflow commands:
 - **`/feature`** - 9-phase implementation-first workflow
 - **`/tdd`** - 9-phase Test-Driven Development workflow with Red-Green-Refactor cycles
+- **`/architect`** - 7-phase architecture design workflow (no implementation)
 - **`/code-review`** - Standalone code review with parallel agents and confidence-based filtering
 
 The full workflows ensure deep codebase understanding before implementation. All commands use specialized agents powered by different models for optimal results.
@@ -15,8 +16,8 @@ The full workflows ensure deep codebase understanding before implementation. All
 
 | Agent | Model | Color | Purpose | Used By |
 |-------|-------|-------|---------|---------|
-| `code-explorer` | Sonnet | Yellow | Analyzes codebase, traces execution paths, maps architecture | `/feature`, `/tdd` |
-| `code-architect` | **Opus** | Yellow | Designs feature architectures with comprehensive blueprints | `/feature`, `/tdd` |
+| `code-explorer` | Sonnet | Yellow | Analyzes codebase, traces execution paths, maps architecture | `/feature`, `/tdd`, `/architect` |
+| `code-architect` | **Opus** | Yellow | Designs feature architectures with comprehensive blueprints | `/feature`, `/tdd`, `/architect` |
 | `test-analyzer` | **Opus** | Green | Analyzes existing code and proposes test plans | `/feature` |
 | `tdd-test-planner` | **Opus** | Green | Designs tests from requirements before code exists | `/tdd` |
 | `test-runner` | Haiku | Green | Executes tests and reports structured results | `/feature`, `/tdd` |
@@ -69,6 +70,20 @@ Launches the guided 9-phase **test-first** TDD workflow:
 9. **Summary** - Document completion, report test coverage
 
 **Key Difference**: In TDD, tests are designed BEFORE architecture, and implementation is interleaved with testing per-task.
+
+### `/architect <feature-description>`
+
+Launches the guided 7-phase **architecture design** workflow (no implementation):
+
+1. **Discovery** - Understand requirements
+2. **Codebase Exploration** - Select exploration focuses (interactive), launch parallel agents
+3. **Clarifying Questions** - Iterative dialogue to resolve all ambiguities
+4. **Perspective Selection** - Select from 10 architecture perspectives (interactive)
+5. **Launch Architects** - Parallel `code-architect` agents with perspective injection
+6. **Present Proposals** - Full agent output with ASCII diagrams, user selects architecture
+7. **Summary** - Document selected architecture, suggest next steps
+
+**Key Difference**: Architecture design only - no planning, implementation, testing, or review phases. Use this when you want to explore architectural options before committing to a full workflow.
 
 ### `/code-review [options]`
 
@@ -177,6 +192,10 @@ Both workflows prompt you to type your choices in key phases. You type which foc
 /tdd Add user authentication with OAuth support
 /tdd  # interactive mode
 
+# /architect - architecture design only
+/architect Add user authentication with OAuth support
+/architect  # interactive mode
+
 # /code-review - standalone review
 /code-review              # review staged changes (default)
 /code-review --unstaged   # review working directory changes
@@ -198,6 +217,13 @@ Both workflows prompt you to type your choices in key phases. You type which foc
 - Complex business logic that benefits from test-first thinking
 - Features with well-defined acceptance criteria
 - When you want comprehensive test coverage as a natural byproduct
+
+### Use `/architect` for:
+- Architecture exploration before committing to implementation
+- Comparing multiple design approaches for complex features
+- Getting expert perspectives on architectural decisions
+- Understanding trade-offs between different approaches
+- Pre-planning for features that will be implemented later
 
 ### Use `/code-review` for:
 - Quick code review without full workflow overhead
