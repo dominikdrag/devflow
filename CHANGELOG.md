@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.3.8] - 2026-01-29
+
+### Added
+- **Issue verification phase** in code review workflows (`/feature`, `/tdd`, `/code-review`)
+  - After initial review agents report issues, verification agents are launched per-focus
+  - `issue-verifier` agent (Opus) validates whether issues are true positives or false positives
+  - Each issue receives a verdict: `confirmed`, `false-positive`, or `uncertain`
+  - False positives are filtered out of the findings
+  - Uncertain issues are flagged as `[NEEDS REVIEW]` for human judgment
+  - Verification reasoning is shown to user for transparency
+- **`issue-verifier` agent** - New Opus agent for validating code review findings
+  - Read-only tools (Glob, Grep, LS, Read) for code analysis
+  - Examines code context to determine if reported issues are real
+  - Provides clear reasoning for each verdict
+
+### Changed
+- `/feature` Phase 8: Added Step 4.5 (Verify Findings), updated Steps 5-6 for verified issues
+- `/tdd` Phase 8: Added Step 4.5 (Verify Findings), updated Steps 5-6 for verified issues
+- `/code-review` Phase 4: Added Step 1.5 (Verify Findings), updated Steps 2-3 for verified issues
+
 ## [2.3.7] - 2026-01-22
 
 ### Added

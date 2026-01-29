@@ -22,6 +22,7 @@ The full workflows ensure deep codebase understanding before implementation. All
 | `tdd-test-planner` | **Opus** | Green | Designs tests from requirements before code exists | `/tdd` |
 | `test-runner` | Haiku | Green | Executes tests and reports structured results | `/feature`, `/tdd` |
 | `code-reviewer` | **Opus** | Red | Reviews code for bugs, security, and convention adherence | All |
+| `issue-verifier` | **Opus** | Yellow | Validates review findings, filters false positives | All |
 | `security-auditor` | **Opus** | Red | Deep security analysis (optional, on request) | All |
 
 ### Agent Triggering
@@ -34,6 +35,7 @@ Agents include enhanced descriptions for automatic triggering:
 - **tdd-test-planner**: Triggers when designing tests from requirements (TDD workflow)
 - **test-runner**: Triggers when executing tests and reporting results
 - **code-reviewer**: Triggers after code changes or on review requests
+- **issue-verifier**: Triggers after initial review to validate findings (automatic in review phase)
 - **security-auditor**: Triggers only on explicit user request (optional)
 
 ## Commands

@@ -1074,34 +1074,84 @@ Launch agents based on selected focuses, all in parallel:
 
 **IMPORTANT**: Present the FULL output from each review agent to the user - do NOT summarize or condense their findings. The user needs complete visibility into each reviewer's analysis, reasoning, and specific concerns to make informed decisions about which issues to address.
 
-### Step 5: Organize Findings
+### Step 4.5: Verify Findings
+
+For each focus that reported issues, launch an `issue-verifier` agent in parallel to validate the findings.
+
+**Agent Prompt Format**:
+> You are verifying issues found by the **[Focus Name]** review.
+>
+> **Issues to verify**:
+> 1. [FILE:LINE] Description - {confidence}%
+> 2. [FILE:LINE] Description - {confidence}%
+> ...
+>
+> **Files to examine**: [list of files mentioned in the issues]
+>
+> For each issue, determine if it is:
+> - **confirmed**: Real issue that should be fixed
+> - **false-positive**: Not actually an issue (explain why)
+> - **uncertain**: Needs human judgment
+>
+> Read the code, examine surrounding context, and provide a clear verdict with reasoning for each issue.
+
+Launch one `issue-verifier` agent per focus that had findings, all in parallel.
+
+**WAIT for ALL verification agents** - Do NOT proceed until every launched agent has returned.
+
+### Step 5: Organize Findings (Verified)
 
 1. Read `claude-tmp/tdd-plan.md` and note any blocked or skipped TDD tasks (they won't be reviewed)
-2. Map high-confidence issues (>=80 for code-reviewer, >=85 for security-auditor) to actionable tasks
-3. Deduplicate overlapping issues (same file + line + similar description)
-4. Organize by severity:
+2. **Process verification results**:
+   - **Filter out** issues marked as `false-positive` (remove from consideration)
+   - **Keep** issues marked as `confirmed` (include in normal findings)
+   - **Flag** issues marked as `uncertain` (include with `[NEEDS REVIEW]` marker)
+3. Map remaining high-confidence issues (>=80 for code-reviewer, >=85 for security-auditor) to actionable tasks
+4. Deduplicate overlapping issues (same file + line + similar description)
+5. Organize by severity:
    - **Critical Issues** (Confidence 90-100): Must be fixed
    - **Important Issues** (Confidence 80-89): Should be addressed
    - **Suggestions** (Confidence < 80): Nice to have improvements
 
 ### Step 6: Present Findings Summary
 
-Display:
+Display verification statistics and verified findings:
 ```
+## Verification Summary
+
+- **Confirmed**: N issues (will be presented for fixing)
+- **False Positives**: N issues (filtered out)
+- **Needs Review**: N issues (uncertain, flagged for human judgment)
+
+### Filtered as False Positives
+- [FILE:LINE] Description - Reason: [brief explanation from verifier]
+- ...
+
+---
+
 ## Review Findings Summary
 
 ### Critical Issues ({count})
-1. [FILE:LINE] Description - {confidence}%
+1. [FILE:LINE] Description - {confidence}% → **confirmed**
+   Reasoning: [verifier explanation]
 2. ...
 
 ### Important Issues ({count})
-1. [FILE:LINE] Description - {confidence}%
+1. [FILE:LINE] Description - {confidence}% → **confirmed**
+   Reasoning: [verifier explanation]
+2. ...
+
+### Needs Review ({count}) [UNCERTAIN]
+1. [FILE:LINE] Description - {confidence}% → **uncertain**
+   Reasoning: [why this needs human judgment]
 2. ...
 
 ### Suggestions ({count})
 1. [FILE:LINE] Description - {confidence}%
 2. ...
 ```
+
+**Note**: Issues marked `[UNCERTAIN]` require your judgment. The verifier could not definitively confirm or rule out these issues - review the reasoning and decide whether to fix.
 
 ### Step 7: User Selection
 
